@@ -217,7 +217,12 @@ function fallbackEvaluate(profile, answers) {
     let score = 0;
     let level = '';
     const ansLower = ans.toLowerCase();
-    const unknownPatterns = ['i don\'t know', 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na', 'inexistent', 'no idea', 'not sure', 'don’t have', 'don\'t have'];
+    const unknownPatterns = [
+      'i don\'t know', 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na',
+      'inexistent', 'no idea', 'not sure', 'don’t have', 'don\'t have', 'dont have', 'missing', 'not available',
+      'unavailable', 'not provided', 'not existing', 'not exist', 'no data', 'no information', 'not applicable',
+      'not present', 'not disposable'
+    ];
     const isUnknown = wordCount === 0 || unknownPatterns.some((p) => ansLower.includes(p));
     if (isUnknown) {
       score = 1;
@@ -313,9 +318,11 @@ function fallbackEvaluate(profile, answers) {
       salesSparxText,
       finalValue: answers.q6 ? answers.q6.trim() : 'Craft your value proposition here by clearly stating who you serve, the problem you solve, and the impact you deliver.',
       nextActions: [
-        'Interview at least three customers to validate emotional drivers and pain points.',
-        'Document a one‑liner value proposition for each key buyer persona.',
-        'Gather data and proof points to quantify your outcomes and support your claims.'
+        'Interview at least five customers to validate emotional drivers and pain points.',
+        'Compile detailed buyer personas and map their top pains and emotional triggers.',
+        'Develop a simple value calculator using your data to quantify benefits for prospects.',
+        'Draft and test multiple emotional headlines balanced by logical benefits across channels.',
+        'Collect new case studies or testimonials that illustrate quantifiable outcomes from your solution.'
       ]
     }
   };
@@ -365,8 +372,9 @@ module.exports = async (req, res) => {
          * Follow the sequence: establish the need to change, create urgency to
          * act now and then explain why your company uniquely solves the problem.
          * If a response is empty or contains phrases like “I don’t know”,
-         * “unknown”, “none”, “n/a”, “inexistent”, or similar, treat it as
-         * unknown and assign the lowest maturity score (1 = None). Provide an
+         * “unknown”, “none”, “n/a”, “inexistent”, “missing”, “not available”,
+         * “unavailable”, “not provided”, “not exist”, “no data”, “no information”,
+         * or similar, treat it as unknown and assign the lowest maturity score (1 = None). Provide an
          * explanation that encourages the user to gather information before
          * progressing. Utilise any attached documents and the provided
          * answers to form your analysis and grounding. Use a maturity scale
