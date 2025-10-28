@@ -1,26 +1,34 @@
 // File: api/evaluate.js
-// Vercel Serverless Function stub for Three Whys Assessor
-// Requires env var: OPENAI_API_KEY
-
 export const config = { runtime: 'edge' };
+
+function safeParse(text, fallback) {
+  try { return JSON.parse(text); } catch { return fallback; }
+}
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Use POST' }), { status: 405 });
   }
   const { profile = {}, answers = {} } = await req.json();
-  const SYSTEM = `You are a strict B2B GTM evaluator. Score six dimensions (Why change, Why now, Why your company, Emotion→Logic, Buyer-as-hero, Clarity). 
-Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output the JSON schema exactly. Refuse to fabricate external facts.`;
 
-  const rubric = {
-    scale: { none:0, emerging:2, basic:3, advanced:4, leading:5 },
-    banding: '0–9 None/Emerging, 10–15 Basic, 16–22 Advanced, 23–30 Leading'
+  const SYSTEM = `You are a strict B2B GTM evaluator. Score six dimensions (Why change, Why now, Why your company, Emotion→Logic, Buyer-as-hero, Clarity).
+Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output ONLY valid JSON per schema. Tailor coaching to role. Do not fabricate external facts.`;
+
+  const schemaHint = {
+    profile: { name: '', role: '', email: '', organization: '' },
+    total: 0,
+    band: 'None',
+    dimensions: [],
+    coaching: { role_adaptive: true },
+    risks: [],
+    path: 'A'
   };
 
-  const userPayload = { profile, answers, rubric };
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response(JSON.stringify({ ...schemaHint, band:'None', total:0, demo:true }), { status: 200 });
+  }
 
-  // Use OpenAI Responses API
-  const openaiRes = await fetch('https://api.openai.com/v1/responses', {
+  const resp = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -32,27 +40,30 @@ Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output the JSON schema e
       reasoning: { effort: 'medium' },
       input: [
         { role: 'system', content: SYSTEM },
-        { role: 'user', content: JSON.stringify(userPayload) }
+        { role: 'user', content: JSON.stringify({ profile, answers }) }
       ]
     })
   });
 
-  if (!openaiRes.ok) {
-    const msg = await openaiRes.text();
-    return new Response(JSON.stringify({ error: 'OpenAI error', detail: msg }), { status: 500 });
+  if (!resp.ok) {
+    const detail = await resp.text();
+    return new Response(JSON.stringify({ error: 'OpenAI error', detail }), { status: 500 });
   }
 
-  const data = await openaiRes.json();
+  const data = await resp.json();
 
-  // Extract text. Adjust if API response shape changes.
-  const text = data.output_text || (Array.isArray(data.output) ? data.output.map(o=>o.content?.[0]?.text).join('') : '');
-  let json;
-  try { json = JSON.parse(text); } catch { 
-    // Fallback minimal response to avoid blank UI
-    json = { profile, total: 0, band: 'None', dimensions: [], coaching: { role_adaptive: true }, risks: [], path: 'A' };
+  let text = '';
+  if (data.output_text) text = data.output_text;
+  else if (Array.isArray(data.output)) {
+    text = data.output.map(o => {
+      if (Array.isArray(o.content) && o.content[0] && o.content[0].type === 'output_text') return o.content[0].text;
+      if (o.content && o.content[0] && o.content[0].text) return o.content[0].text;
+      return '';
+    }).join('\n');
+  } else if (data.choices && data.choices[0]?.message?.content) {
+    text = data.choices[0].message.content;
   }
-  return new Response(JSON.stringify(json), {
-    headers: { 'Content-Type': 'application/json' },
-    status: 200
-  });
+
+  const json = safeParse(text, { ...schemaHint, parse_error: true });
+  return new Response(JSON.stringify(json), { headers: { 'Content-Type': 'application/json' }, status: 200 });
 }
