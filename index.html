@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -717,6 +718,7 @@
           'don’t have',
           "don't have",
           'dont have',
+          'do not have',
           'missing',
           'not available',
           'unavailable',
@@ -729,10 +731,13 @@
           'not present',
           'not disposable'
         ];
-        // Consider a response unknown only if it is empty or exactly matches one of the patterns
+        // Normalise answer and compute unknown detection: unknown if empty or contains a pattern in a very short response
         const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
-        const isUnknown = normalised.length === 0 || unknownPatterns.includes(normalised);
-        if (isUnknown) {
+        const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
+        const isVeryShort = wordCount <= 4;
+        const isUnknown = normalised.length === 0 || (containsUnknown && isVeryShort);
+        // Extremely short answers (two words or fewer) or unknown patterns are treated as None
+        if (isUnknown || wordCount <= 2) {
           score = 1;
           level = 'None';
         } else if (wordCount < 15) {
@@ -969,6 +974,8 @@
 
       // Attach event handlers for bottom buttons
       document.getElementById('backToEditBtn').addEventListener('click', () => {
+        // Clear any previous results so a new submission triggers fresh evaluation
+        state.results = null;
         // Return to step 2 with existing answers (attachments cannot be re-populated for security reasons)
         showStep2();
         setTimeout(() => {
