@@ -75,48 +75,170 @@ function fallbackEvaluate(profile, answers) {
   ];
   let totalScore = 0;
   const dims = [];
+  // Define tailored messaging for each category and level
+  const messageTemplates = {
+    'Why change': {
+      None: {
+        why: 'Your answer is missing or expresses uncertainty about the buyer or their pain. Without identifying who you serve and what problem they face, there is no foundation for explaining why a change is needed. This dimension remains unaddressed because there is nothing to evaluate.',
+        how: 'Start by researching your ideal buyer and documenting their top pain points. Talk to customers to uncover the emotional drivers behind the problem and quantify its impact. Use those insights to craft a clear statement about why the status quo is unacceptable and change is necessary.'
+      },
+      Emerging: {
+        why: 'You hint at a buyer or problem, but the connection is shallow. You don’t describe the person, the context or the consequences of the pain. As a result, readers cannot understand why this issue matters or why your buyer should pay attention.',
+        how: 'Clarify who your buyer is and describe their pain in vivid detail. Explain how the problem affects their goals and well‑being. Use anecdotes or data to show the scale of the pain and why it cannot be ignored. This will strengthen your case for change.'
+      },
+      Basic: {
+        why: 'You identify the buyer and state a clear pain, but the description is surface‑level. It lacks depth about the emotional stakes or the quantifiable cost of the problem. Without deeper insight, it fails to inspire action or convey urgency.',
+        how: 'Deepen your explanation by highlighting the emotions driving the buyer’s pain and quantifying the cost of inaction. Add customer stories or industry statistics. Show empathy for the buyer’s struggle and connect the pain to concrete business outcomes to motivate change.'
+      },
+      Advanced: {
+        why: 'You articulate the buyer and their pain with a good balance of storytelling and data. However, the answer could benefit from unique insights or broader industry context that underscores the problem’s significance. Without fresh perspectives, it might still feel generic.',
+        how: 'Enrich your narrative with proprietary research or market trends that show why the pain persists. Connect the buyer’s frustration to larger industry shifts and emphasise why existing solutions fall short. Position your insight as uniquely suited to address these deeper challenges.'
+      },
+      Leading: {
+        why: 'Your description of the buyer’s pain is comprehensive and compelling. It seamlessly blends empathy with quantifiable evidence, making a persuasive case for change. You demonstrate deep understanding of the buyer’s world and why the current situation cannot stand.',
+        how: 'Continue to refine your insights by gathering ongoing feedback from buyers. Share new stories and data to keep your narrative fresh. Ensure all internal teams align on this message and adapt it as your market evolves, reinforcing your leadership position.'
+      }
+    },
+    'Why now': {
+      None: {
+        why: 'You did not identify any trigger or sense of urgency. Without specifying what makes this issue critical in the next months, there is no reason to prioritise it. The urgency dimension cannot be scored without context.',
+        how: 'Look for specific triggers that make acting in the next three to six months essential. These could be competitive threats, regulatory deadlines, market trends or budget cycles. Explain how waiting would hurt the buyer and quantify the implications of delay.'
+      },
+      Emerging: {
+        why: 'You suggest a reason to act now, but the explanation lacks depth and connection to the buyer’s business. The urgency feels generic and does not convey why action within the next months is critical.',
+        how: 'Describe the catalyst that makes this issue urgent and tie it to tangible consequences. Use stories or data showing the impact of recent market changes or upcoming deadlines. Highlight what happens if action is delayed beyond a three‑to‑six‑month window.'
+      },
+      Basic: {
+        why: 'You provide a reason to act now, but it lacks evidence or emotional resonance. The trigger is stated but not fully explored or linked to the buyer’s pain. As a result, the sense of urgency remains moderate.',
+        how: 'Strengthen the urgency by quantifying the costs of delay and linking the trigger to milestones in the buyer’s world—such as budget cycles, strategic reviews or industry shifts. Show how acting now will provide a competitive advantage while procrastination leads to risk.'
+      },
+      Advanced: {
+        why: 'You clearly explain the triggers and urgency, combining emotional and logical elements. However, the narrative may still rely on common examples. Adding proprietary data or visionary insights could make the urgency more distinctive.',
+        how: 'Provide specific statistics or case studies showing the benefits of acting promptly and the risks of waiting. Connect the urgency to broader industry shifts and illustrate your foresight in anticipating these changes. Make the argument for immediate action feel inevitable.'
+      },
+      Leading: {
+        why: 'Your urgency narrative is compelling and credible. It integrates internal pressures and external market forces, backed by data and emotional resonance. The reader clearly understands the cost of inaction and the need to move quickly.',
+        how: 'Keep your urgency story current by monitoring new market signals and buyer priorities. Update your narrative with fresh insights and align stakeholders around the timeline. Use your foresight to predict emerging trends and maintain urgency at the forefront of discussions.'
+      }
+    },
+    'Why your company': {
+      None: {
+        why: 'You provide no explanation of why your company is uniquely qualified. Without differentiators or proof, there is nothing to evaluate. This dimension is left unanswered.',
+        how: 'Identify two or three qualities that set your company apart, such as expertise, technology or methodology. Provide a proof point—like a customer testimonial or performance statistic—that validates each differentiator. This will begin to establish credibility.'
+      },
+      Emerging: {
+        why: 'You mention a differentiator but fail to show how it connects to the buyer’s problem. There is no evidence or context, making the claim feel generic. Your credibility remains unestablished.',
+        how: 'Relate your differentiators to the buyer’s pain. Explain why they matter and how they uniquely address the problem. Support your claims with proof, such as case studies, awards or metrics. Focus on the buyer’s perspective rather than internal achievements.'
+      },
+      Basic: {
+        why: 'You list differentiators and a proof point, but you don’t explain why they matter to the buyer. The narrative feels like a checklist rather than a tailored argument. The buyer may still question your relevance.',
+        how: 'Translate each differentiator into a buyer benefit. Describe how your track record with similar customers demonstrates your ability to solve their problem. Highlight your purpose or mission and why it aligns with the buyer’s values or ambitions.'
+      },
+      Advanced: {
+        why: 'You explain why your company is the right partner with a balance of differentiators and evidence. However, the narrative could include more unique insights or emotional appeal to stand out from competitors.',
+        how: 'Deepen your story by sharing your company’s origin, mission and vision, and showing how they resonate with the buyer’s ambitions. Introduce thought leadership or innovative practices that prove your commitment to solving the problem in a unique way.'
+      },
+      Leading: {
+        why: 'You deliver a compelling and inspiring explanation of why your company is uniquely suited to help. Differentiators are clear, proof is strong and the story resonates emotionally. You establish trust and excitement.',
+        how: 'Maintain your edge by continuously innovating and refining your differentiators. Gather new customer success stories and third‑party validation. Stay true to your mission and show how your culture and values empower the buyer’s success.'
+      }
+    },
+    'Emotion–Logic': {
+      None: {
+        why: 'You provided no emotional hook or logical statement. Without a headline, there is no demonstration of your ability to lead with emotion and support with logic. This leaves us unable to assess this dimension.',
+        how: 'Develop a concise headline that evokes an emotion (fear, ambition, relief) while hinting at the change you enable. Follow it with a logical benefit or fact. Keep it short, inspiring and aligned with your buyer’s pain.'
+      },
+      Emerging: {
+        why: 'Your headline is extremely brief or generic. It lacks emotional resonance and fails to connect to a logical benefit. As a result, it does not capture attention or convey your value proposition.',
+        how: 'Rewrite the headline to focus on the buyer’s emotions. Use vivid language that paints a picture of the desired change. Then add a logical element, such as a quantifiable outcome, to show the benefit of acting.'
+      },
+      Basic: {
+        why: 'You produce a headline that hints at either emotion or logic, but not both. It shows some understanding of the need to hook and justify, yet the message feels unbalanced or uninspiring.',
+        how: 'Balance your headline by combining an emotional driver with a logical payoff. For example, start with a phrase that stirs fear or ambition and end with a measurable result. Test different versions and refine based on feedback.'
+      },
+      Advanced: {
+        why: 'Your headline effectively blends emotion and logic, but it may rely on standard phrasing or lack unique flair. It is good but not yet memorable or distinctive.',
+        how: 'Add a distinctive element such as a surprising statistic, a play on words, or a narrative twist that makes your headline stand out. Ensure it aligns with your brand and resonates with your specific buyer segment.'
+      },
+      Leading: {
+        why: 'Your headline is exceptional. It is short, memorable and conveys both the emotional journey and the logical benefit. It instantly communicates the transformation you offer and inspires immediate attention.',
+        how: 'Keep experimenting with creative expressions as your offerings evolve. Use A/B testing to optimise the phrasing for different contexts. Train your team to use this headline consistently and adapt it for various channels and audiences.'
+      }
+    },
+    'Buyer‑as‑hero': {
+      None: {
+        why: 'You did not quantify any outcomes or articulate assumptions, leaving no story about the buyer’s journey or success. Without numbers or context, the buyer’s hero’s journey is absent.',
+        how: 'Quantify at least two outcomes your solution delivers—such as time saved, revenue gained, or risks avoided. State the assumptions behind your numbers, like team size or baseline metrics. Frame your buyer as the hero whose success grows through these results.'
+      },
+      Emerging: {
+        why: 'You mention outcomes but fail to provide numbers or tie them to the buyer’s story. The benefits feel abstract and the buyer does not see themselves in the narrative.',
+        how: 'Provide specific metrics that illustrate the impact of your solution. Explain how these improvements elevate the buyer’s status, performance or well‑being. Use transparent assumptions and show the before‑and‑after transformation.'
+      },
+      Basic: {
+        why: 'You share some metrics but they are generic or disconnected from the buyer’s goals. The story does not clearly position the buyer as the hero achieving these results. It feels like a list of benefits rather than a personal journey.',
+        how: 'Relate each metric to the buyer’s objectives and responsibilities. Show how improved time, revenue or risk reduction makes the buyer more effective or respected. Provide context—such as current benchmarks—to demonstrate the significance of the gains.'
+      },
+      Advanced: {
+        why: 'You present credible metrics and assumptions and begin to tell a story. However, the narrative could be more inspiring and specific. It may rely on general statistics rather than an evocative hero journey.',
+        how: 'Frame the buyer’s journey as overcoming a challenge with your solution. Use case studies or anecdotes to illustrate real customers achieving these outcomes. Make sure the story highlights personal growth and professional impact.'
+      },
+      Leading: {
+        why: 'You create a powerful, data‑driven story that clearly shows the buyer as the hero. The metrics are meaningful and the narrative inspires confidence and pride. This sets a high bar for storytelling.',
+        how: 'Continue collecting success stories and updating your metrics. Tailor your narrative for different buyer personas so they can envision their own victory. Use multimedia assets like quotes or short videos to deepen the emotional connection.'
+      }
+    },
+    'Clarity': {
+      None: {
+        why: 'You did not provide a one‑sentence value proposition or indicated you do not have one. Without a concise statement of who you serve, the problem and the benefit, we cannot assess clarity. This dimension is unaddressed.',
+        how: 'Compose a clear, single sentence that names your buyer, states the problem you solve and describes the impact you deliver. Eliminate jargon and aim for simplicity. This sentence should be easy to remember and form the core of your messaging.'
+      },
+      Emerging: {
+        why: 'Your value proposition is vague or incomplete. It may lack one or more of the essential elements: the buyer, the problem or the impact. It reads like a tagline and does not provide clarity.',
+        how: 'Rewrite your sentence to explicitly mention the audience, the pain and the benefit in plain language. Avoid buzzwords. Provide context or numbers to make the proposition feel real. This will sharpen the clarity and focus of your message.'
+      },
+      Basic: {
+        why: 'You provide a value proposition that covers the basics but it is generic and fails to highlight what makes you unique. The wording may be formulaic or reliant on common phrases.',
+        how: 'Refine the sentence to emphasise your unique approach or differentiator. Use active voice and incorporate a hint of emotion. Ensure that it flows naturally and stands out from typical statements. Test it with customers to ensure it resonates.'
+      },
+      Advanced: {
+        why: 'You craft a concise and distinctive value proposition that clearly states the buyer, problem and impact. It is strong but could include a bit more specificity or creativity to be truly outstanding.',
+        how: 'Add a unique detail like a metric, proprietary method or compelling adjective that makes your value proposition unforgettable. Align the tone with your brand personality and ensure it resonates across multiple buyer personas.'
+      },
+      Leading: {
+        why: 'Your value proposition is succinct, unique and magnetic. It clearly communicates who you serve, what you solve and how you transform the buyer’s world. It stands out and stays in the mind.',
+        how: 'Continue to iterate as your offering evolves and your market changes. Use the one‑sentence value proposition as a north star for all messaging. Encourage team members to internalise and deliver it consistently.'
+      }
+    }
+  };
+
   categories.forEach((cat) => {
     const ans = (answers[cat.key] || '').trim();
     const wordCount = ans ? ans.split(/\s+/).length : 0;
     let score = 0;
     let level = '';
-    let why = '';
-    let how = '';
-    // Check for unknown or empty responses indicating no information
     const ansLower = ans.toLowerCase();
     const unknownPatterns = ['i don\'t know', 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na', 'inexistent', 'no idea', 'not sure', 'don’t have', 'don\'t have'];
     const isUnknown = wordCount === 0 || unknownPatterns.some((p) => ansLower.includes(p));
     if (isUnknown) {
-      // Treat unknown or no answers as none
       score = 1;
       level = 'None';
-      why = 'You left this question unanswered or indicated that you don’t know, which provides no insight into your buyer’s context, the urgency of their pain or how your company might address it. Without this information there is nothing to evaluate, so this dimension scores the lowest.';
-      how = 'Start by thinking through three elements: (a) who is your buyer and what is their top pain, (b) why addressing this problem matters now, and (c) why your company is uniquely equipped to help. Write at least one detailed paragraph covering these points and include facts, examples or emotions. If you lack this information, prioritise customer interviews and market research before moving forward.';
     } else if (wordCount < 15) {
-      // Assign score 2 for emerging responses.
       score = 2;
       level = 'Emerging';
-      why = 'Your answer is very brief and lacks context, leaving key questions unanswered. At an emerging level you might mention the buyer or the problem but you don’t provide the background, emotion or data to build confidence. This makes it hard to see why a change would matter or why you are credible.';
-      how = 'Add specific details about who the buyer is and the scale of their pain. Include an example or metric to quantify urgency. Describe how your product or service uniquely helps them and why now is the right time. A fuller paragraph will elevate you to the next level.';
     } else if (wordCount < 40) {
-      // Assign score 3 for basic responses.
       score = 3;
       level = 'Basic';
-      why = 'You have captured the core idea by articulating the buyer, pain, urgency or differentiation, but the response remains surface level. At a basic level there is some structure, yet it lacks depth, evidence and emotional pull. Buyers may understand the problem but still wonder why they should trust your solution.';
-      how = 'Strengthen your answer by elaborating on the problem with anecdotes or statistics, connecting the emotional drivers to logical data. Provide proof points like case study results or testimonials and highlight what truly distinguishes your company. This added depth will move you towards the advanced band.';
     } else if (wordCount < 80) {
-      // Assign score 4 for advanced responses.
       score = 4;
       level = 'Advanced';
-      why = 'Your answer is well developed, balancing emotional storytelling with logical proof. It clearly identifies the buyer’s pain, establishes urgency and explains why your company is uniquely suited to help. However there may still be opportunities to weave in unique insights or more tangible evidence to demonstrate market leadership.';
-      how = 'To reach a leading level, enrich your narrative with proprietary data, customer success metrics and thought leadership. Illustrate how your solution delivers measurable outcomes and share unique perspectives or innovations that competitors lack. Continually refine your messaging based on feedback to maintain authenticity and differentiation.';
     } else {
-      // Assign score 5 for leading responses.
       score = 5;
       level = 'Leading';
-      why = 'This answer is comprehensive and demonstrates mastery of the framework. It seamlessly integrates emotional hooks, quantifiable results and clear differentiation, making a compelling case for change now and for your company. The narrative flows logically and builds trust through concrete evidence and unique insights.';
-      how = 'The next step is to keep sharpening your story through continuous market research and customer conversations. Look for ways to personalise your message further and ensure it resonates across different stakeholder groups. Maintain your leadership by adapting to market shifts and sharing fresh success stories to inspire confidence.';
     }
+    const catMessages = messageTemplates[cat.name] || {};
+    const msg = catMessages[level] || { why: '', how: '' };
+    const why = msg.why;
+    const how = msg.how;
     totalScore += score;
     dims.push({ name: cat.name, score, level, why, how });
   });
