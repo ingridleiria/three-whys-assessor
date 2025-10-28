@@ -218,12 +218,15 @@ function fallbackEvaluate(profile, answers) {
     let level = '';
     const ansLower = ans.toLowerCase();
     const unknownPatterns = [
-      'i don\'t know', 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na',
-      'inexistent', 'no idea', 'not sure', 'don’t have', 'don\'t have', 'dont have', 'missing', 'not available',
+      "i don't know", 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na',
+      'inexistent', 'no idea', 'not sure', 'don’t have', "don't have", 'dont have', 'missing', 'not available',
       'unavailable', 'not provided', 'not existing', 'not exist', 'no data', 'no information', 'not applicable',
       'not present', 'not disposable'
     ];
-    const isUnknown = wordCount === 0 || unknownPatterns.some((p) => ansLower.includes(p));
+    // Consider a response unknown only if it is empty or matches one of the patterns exactly.
+    // We trim and normalise the answer to lowercase and remove trailing punctuation for comparison.
+    const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
+    const isUnknown = normalised.length === 0 || unknownPatterns.includes(normalised);
     if (isUnknown) {
       score = 1;
       level = 'None';
@@ -281,16 +284,32 @@ function fallbackEvaluate(profile, answers) {
   const roleLower = (profile.role || '').toLowerCase();
   // Build a role‑tailored coaching paragraph and additional descriptions
   let coachingText = '';
-  if (roleLower.includes('product')) {
+  if (roleLower.includes('ceo') || roleLower.includes('chief executive')) {
+    coachingText = 'As a CEO your primary responsibility is to champion a unified value proposition across the organisation. Drive alignment between product, marketing and sales around a shared narrative and ensure resources support timely execution. Link the value story to strategic goals, emphasise organisational urgency and model the behaviour you expect from your teams in every interaction.';
+  } else if (roleLower.includes('cfo') || roleLower.includes('chief financial')) {
+    coachingText = 'As a CFO focus on aligning investment with your value proposition. Use financial metrics to quantify the cost of inaction and the ROI of acting now. Collaborate with revenue and product leaders to ensure budgets support key initiatives and incorporate value calculators into planning. Demonstrate fiscal discipline while enabling growth.';
+  } else if (roleLower.includes('cro') || roleLower.includes('chief revenue')) {
+    coachingText = 'As a Chief Revenue Officer, you must unify sales, marketing and customer success around a clear value narrative. Tie revenue goals to the Three Whys, drive accountability for consistent messaging and coach teams to balance emotion with logic. Leverage pipeline data to show urgency and guide resource allocation.';
+  } else if (roleLower.includes('cso') || roleLower.includes('chief strategy')) {
+    coachingText = 'As a Chief Strategy Officer, ensure your value proposition is embedded into strategic planning. Analyse market trends and competitive moves to anticipate why change and why now. Translate insights into actionable initiatives and communicate them clearly so the entire organisation understands its role in delivering on the strategy.';
+  } else if (roleLower.includes('cpo') || roleLower.includes('chief product')) {
+    coachingText = 'As a Chief Product Officer you must translate product capabilities into business outcomes. Ensure your roadmap tells a cohesive story that reflects real buyer pains and ambitions. Partner with marketing and sales to validate that new features map to customer problems, using interviews and data to uncover emotional drivers and adjust priorities accordingly.';
+  } else if (roleLower.includes('cio') || roleLower.includes('chief information')) {
+    coachingText = 'As a CIO your role is to enable the technology and data infrastructure that supports your value proposition. Provide analytics to quantify urgency and outcomes, and ensure systems capture customer feedback to refine messaging. Collaborate with product and revenue leaders to prioritise digital investments that reinforce the narrative.';
+  } else if (roleLower.includes('cto') || roleLower.includes('chief technology')) {
+    coachingText = 'As a CTO focus on the technical innovation that differentiates your company. Communicate how your architecture and product roadmap uniquely address buyer pain points and enable rapid change. Work with product and marketing teams to translate complex features into business value and inspire confidence in your technical vision.';
+  } else if (roleLower.includes('chro') || roleLower.includes('chief human')) {
+    coachingText = 'As a CHRO align your people strategy with the value proposition. Ensure recruitment, training and performance management emphasise the Three Whys so employees can articulate the message. Foster a culture where teams collaborate across functions to deliver on the promise and recognise behaviours that reinforce the narrative.';
+  } else if (roleLower.includes('product')) {
     coachingText = 'As a product leader you should translate product capabilities into business outcomes and ensure your roadmap tells a cohesive story. Partner closely with marketing and sales to validate that new features map to real customer problems. Use interviews and data to uncover emotional drivers and align messaging with market needs, then adapt plans accordingly.';
   } else if (roleLower.includes('marketing')) {
     coachingText = 'As a marketing leader focus on articulating a clear narrative that resonates with your buyer’s fears and ambitions across all channels. Build campaigns around quantified proof and nurture leads through education on the Three Whys. Align closely with sales and product so messaging and assets reinforce one another and refine them based on market feedback.';
-  } else if (roleLower.includes('sales')) {
+  } else if (roleLower.includes('sales') || roleLower.includes('seller')) {
     coachingText = 'As a sales leader ensure your team understands the Three Whys and can articulate them in conversations of varying lengths. Coach reps to lead with emotion, back it with logic and tailor differentiation based on buyer persona. Regularly gather feedback from prospects and customers to refine your message and improve win rates.';
-  } else if (roleLower.includes('ceo') || roleLower.includes('chief executive')) {
-    coachingText = 'As a CEO your role is to champion a unified value proposition across the organisation. Align product, marketing and sales around a shared narrative and ensure resources support timely execution. Emphasise the organisational urgency, link the value story to strategic goals and model the behaviour you expect from your teams in every customer interaction.';
+  } else if (roleLower.includes('director')) {
+    coachingText = 'As a director you play a critical role in translating high‑level strategy into day‑to‑day execution. Ensure your team understands the value narrative and how their work supports it. Provide feedback from the front lines to refine messaging and coordinate cross‑functional initiatives that reinforce the Three Whys.';
   } else {
-    coachingText = 'As a business leader align with cross‑functional teams to build a unified value story. Ensure your personal objectives support the broader go‑to‑market strategy and contribute feedback to improve the value proposition. Encourage collaboration and continuous learning to help the organisation advance its message.';
+    coachingText = 'As a business leader align with cross‑functional teams to build a unified value story. Ensure your objectives support the broader go‑to‑market strategy and contribute feedback to improve the value proposition. Encourage collaboration and continuous learning to help the organisation advance its message.';
   }
   // Provide short explanations for each coaching subsection
   const headlineExplain = 'Craft a short, emotional hook that captures your buyer’s attention and summarises the change you enable. Make it memorable and aspirational.';
@@ -299,6 +318,44 @@ function fallbackEvaluate(profile, answers) {
   const valueOutlineExplain = 'Break down the quantitative value: baseline metrics, expected lift and payback period. Use real data or reasonable assumptions for credibility.';
   // Generic SalesSparx pitch
   const salesSparxText = 'SalesSparx can partner with you to unify your go‑to‑market messaging, build a bespoke value calculator and coach your team on delivering a consistent, compelling narrative that drives adoption and revenue.';
+  // Determine next actions based on overall band to provide more relevant guidance
+  const actionsMap = {
+    None: [
+      'Identify your target buyer personas and conduct research to understand their pain points.',
+      'Determine key triggers that make addressing the problem urgent and document them.',
+      'List differentiators and gather at least one proof point (testimonial, statistic) for each.',
+      'Draft an emotional headline paired with a logical benefit and refine it through feedback.',
+      'Write a concise one‑sentence value proposition stating buyer, pain and outcome.'
+    ],
+    Emerging: [
+      'Interview customers to validate emotional drivers, pain points and urgency triggers.',
+      'Collect data to quantify the costs of inaction and refine your urgency narrative.',
+      'Document unique differentiators and gather case studies to support each claim.',
+      'Experiment with emotional headlines that blend feeling with facts; test internally.',
+      'Build a simple value calculator outlining assumptions and expected benefits.'
+    ],
+    Basic: [
+      'Deepen research on buyer emotions and triggers using surveys and analytics.',
+      'Strengthen differentiators by adding unique proof points or proprietary insights.',
+      'Gather more specific metrics to quantify the outcomes you promise.',
+      'Align messaging across product, marketing and sales teams for consistency.',
+      'Expand your value calculator to model various buyer scenarios.'
+    ],
+    Advanced: [
+      'Integrate new customer stories and industry trends to keep your narrative fresh.',
+      'Add proprietary research or thought leadership to make your urgency story distinctive.',
+      'Refine differentiators based on customer feedback and competitive analysis.',
+      'Test advanced emotional hooks or storytelling techniques for your headline.',
+      'Segment your value calculator by persona to tailor benefits more precisely.'
+    ],
+    Leading: [
+      'Continue innovating and evolving your message to stay ahead of market shifts.',
+      'Regularly benchmark your value proposition against industry leaders for inspiration.',
+      'Document and share insights internally and externally to reinforce thought leadership.',
+      'Collect new success stories and update your metrics to maintain credibility.',
+      'Train and coach your team to deliver your value proposition consistently across channels.'
+    ]
+  };
   const result = {
     profile,
     averageScore: avgScore,
@@ -315,15 +372,10 @@ function fallbackEvaluate(profile, answers) {
       valueOutline: 'Define baseline metrics, lift assumptions and payback timeframe.',
       valueOutlineExplain,
       coachingText,
-      salesSparxText,
+      // Omit the SalesSparx promotional text for a cleaner report
+      salesSparxText: '',
       finalValue: answers.q6 ? answers.q6.trim() : 'Craft your value proposition here by clearly stating who you serve, the problem you solve, and the impact you deliver.',
-      nextActions: [
-        'Interview at least five customers to validate emotional drivers and pain points.',
-        'Compile detailed buyer personas and map their top pains and emotional triggers.',
-        'Develop a simple value calculator using your data to quantify benefits for prospects.',
-        'Draft and test multiple emotional headlines balanced by logical benefits across channels.',
-        'Collect new case studies or testimonials that illustrate quantifiable outcomes from your solution.'
-      ]
+      nextActions: actionsMap[band] || actionsMap['Basic']
     }
   };
   return result;
