@@ -219,15 +219,19 @@ function fallbackEvaluate(profile, answers) {
     const ansLower = ans.toLowerCase();
     const unknownPatterns = [
       "i don't know", 'i don’t know', 'dont know', 'do not know', 'unknown', 'none', 'n/a', 'na',
-      'inexistent', 'no idea', 'not sure', 'don’t have', "don't have", 'dont have', 'missing', 'not available',
-      'unavailable', 'not provided', 'not existing', 'not exist', 'no data', 'no information', 'not applicable',
-      'not present', 'not disposable'
+      'inexistent', 'no idea', 'not sure', 'don’t have', "don't have", 'dont have', 'do not have', 'missing',
+      'not available', 'unavailable', 'not provided', 'not existing', 'not exist', 'no data', 'no information',
+      'not applicable', 'not present', 'not disposable'
     ];
-    // Consider a response unknown only if it is empty or matches one of the patterns exactly.
-    // We trim and normalise the answer to lowercase and remove trailing punctuation for comparison.
+    // Trim and normalise the answer to lowercase, removing punctuation for comparison
     const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
-    const isUnknown = normalised.length === 0 || unknownPatterns.includes(normalised);
-    if (isUnknown) {
+    // Determine if the answer contains an unknown phrase
+    const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
+    const isVeryShort = wordCount <= 4;
+    // A response is considered unknown if empty or if it contains an unknown phrase and is very short
+    const isUnknown = normalised.length === 0 || (containsUnknown && isVeryShort);
+    // Extremely short answers (two words or fewer) or unknown patterns are treated as None
+    if (isUnknown || wordCount <= 2) {
       score = 1;
       level = 'None';
     } else if (wordCount < 15) {
