@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -39,15 +38,15 @@
     .pill{display:inline-flex;align-items:center;gap:8px;background:var(--brand-darkteal);color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
     .muted{color:var(--gray-500)}
     .hidden{display:none}
-    .meter{height:10px;border-radius:999px;background:var(--gray-200);overflow:hidden;margin:8px 0 4px}
-    .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--brand-teal),var(--brand-darkteal));width:0}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
     .col-4{grid-column:span 4}
-    .col-8{grid-column:span 8}
+    .col-6{grid-column:span 6}
     .badge{padding:4px 10px;border-radius:999px;border:1px solid var(--gray-300);background:var(--gray-100);font-size:12px}
     .callout{border-left:4px solid var(--brand-teal);background:#f2fcfb;padding:12px;border-radius:10px}
-    ul{margin:8px 0 0 18px}
+    .tile{border:1px solid var(--gray-200);border-radius:12px;padding:14px;background:#fff}
+    .avg{font-size:40px;font-weight:800;color:var(--brand-darkteal)}
     .err{color:#b00020;font-weight:600}
+    ul{margin:8px 0 0 18px}
   </style>
 </head>
 <body>
@@ -103,24 +102,28 @@
 
     <section id="page-results" class="card hidden">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Results</h2>
-        <span id="band" class="pill"></span>
+        <h2>Value Proposition Results</h2>
+        <div><span class="muted">Average Score</span><div class="avg" id="avgScore">—</div></div>
       </div>
-      <div class="meter" aria-label="score meter"><span id="meter"></span></div>
-      <p class="muted" id="scoreline"></p>
+      <p id="exec" class="callout"></p>
 
+      <h3>Detailed Assessment</h3>
+      <div id="table"></div>
+
+      <h3>Recommendations</h3>
       <div class="grid">
-        <div class="col-4">
-          <h3>Scores by Dimension</h3>
-          <div id="dim-list"></div>
+        <div class="col-6">
+          <div class="tile">
+            <h4>Role-tailored Coaching</h4>
+            <div id="coach"></div>
+          </div>
         </div>
-        <div class="col-8">
-          <h3>Role-tailored Coaching</h3>
-          <div id="coach" class="callout"></div>
-          <h3>Suggested Final Value Proposition</h3>
-          <div id="fvp" class="callout"></div>
-          <h3>Next Actions</h3>
-          <ul id="next"></ul>
+        <div class="col-6">
+          <div class="tile">
+            <h4>Suggested Final Value Proposition + Next Actions</h4>
+            <div id="fvp"></div>
+            <ul id="next"></ul>
+          </div>
         </div>
       </div>
 
@@ -139,10 +142,9 @@
     const assessForm = document.getElementById('tw-form');
     const backBtn = document.getElementById('back');
     const profPill = document.getElementById('prof-pill');
-    const band = document.getElementById('band');
-    const meter = document.getElementById('meter');
-    const scoreline = document.getElementById('scoreline');
-    const dimList = document.getElementById('dim-list');
+    const avgScore = document.getElementById('avgScore');
+    const exec = document.getElementById('exec');
+    const table = document.getElementById('table');
     const coach = document.getElementById('coach');
     const fvp = document.getElementById('fvp');
     const next = document.getElementById('next');
@@ -187,19 +189,17 @@
     });
 
     function renderResult(json){
-      const total = json.total || 0;
-      const max = 30;
-      meter.style.width = Math.min(100, Math.round((total/max)*100)) + '%';
-      band.textContent = json.band || '—';
-      scoreline.textContent = `Total ${total} / ${max}`;
+      const dims = json.dimensions || [];
+      const avg = dims.length ? (dims.reduce((a,b)=>a+(b.score||0),0) / dims.length) : 0;
+      avgScore.textContent = avg.toFixed(1);
+      exec.textContent = json.executive_summary || '';
 
-      dimList.innerHTML = (json.dimensions || []).map(d => `
-        <div class="callout" style="margin:8px 0">
-          <div><strong>${d.name}</strong></div>
-          <div class="muted">Score: ${d.score} • Level: ${d.level || ''}</div>
-          <div>${d.rationale || ''}</div>
-        </div>
-      `).join('');
+      table.innerHTML = dims.map(d => `
+        <div class="grid" style="align-items:start;margin:8px 0">
+          <div class="col-4"><strong>${d.name}</strong><div class="muted">Score ${d.score} • ${d.level||''}</div></div>
+          <div class="col-4"><div class="tile"><strong>Why this level</strong><br>${d.rationale || ''}</div></div>
+          <div class="col-4"><div class="tile"><strong>How to reach next level</strong><br>${d.how_to_advance || ''}</div></div>
+        </div>`).join('');
 
       const c = json.coaching || {};
       coach.innerHTML = `
@@ -222,28 +222,53 @@
     }
 
     function demoResult(payload){
+      const A = payload.answers || {};
+      const role = (payload.profile.role||'').toLowerCase();
       const dims = [
         {name:'Why change'}, {name:'Why now'}, {name:'Why your company'},
         {name:'Emotion→Logic'},{name:'Buyer-as-hero'},{name:'Clarity'}
-      ].map(d=>({name:d.name, score:3, level:'Basic', rationale:'Demo score. Connect emotion to quantified outcomes.', evidence: [] }));
-      const total = dims.reduce((a,b)=>a+b.score,0);
-      const role = (payload.profile.role||'').toLowerCase();
-      const CoachingByRole = role.includes('product') ? {
-        headline_edit: 'Ship a message the whole org can use.',
-        urgency_tightening: 'Tie roadmap items to revenue risk in the next two quarters.',
-        differentiator_rewrite: 'Name a workflow you uniquely automate end-to-end.',
-        final_value_prop: 'We unify product, marketing, and sales on a single value story that drives adoption and revenue.',
-        value_calc_outline: ['Baseline activation','Lift assumption','Payback months'],
-        next_actions: ['Gather 3 customer quotes','Document one-liner per ICP','Baseline activation metric']
-      } : {
-        headline_edit: 'Stop losing deals to faster storytellers.',
-        urgency_tightening: 'Anchor to quarter-end or competitive deadlines.',
-        differentiator_rewrite: 'Cite one unique proof with numbers.',
-        final_value_prop: 'We align teams on a clear, quantified value story that accelerates pipeline and win rate.',
-        value_calc_outline: ['Baseline win rate','Assumed delta','Impact range'],
-        next_actions: ['Collect baseline metrics','Draft a 100-word case','Validate with 3 customers']
+      ].map(d=>({name:d.name, score:3, level:'Basic'}));
+      const explain = (ans) => 
+        `This reads as Basic because the response "${(ans||'').slice(0,140)}" lacks precise buyer language, quantified stakes, and clear ownership. The message signals intent but not evidence, so it does not create prioritization pressure across teams.`;
+      const advance = () => 
+        `Elevate to Advanced by adding one quantified KPI, a dated trigger inside the next two quarters, and one hard proof point. Assign an accountable owner and convert generic claims into a concrete mechanism with a before/after metric.`;
+      dims[0].rationale = explain(A.q1); dims[0].how_to_advance = advance();
+      dims[1].rationale = explain(A.q2); dims[1].how_to_advance = advance();
+      dims[2].rationale = explain(A.q3); dims[2].how_to_advance = advance();
+      dims[3].rationale = explain(A.q4); dims[3].how_to_advance = advance();
+      dims[4].rationale = explain(A.q6); dims[4].how_to_advance = advance();
+      dims[5].rationale = explain(A.q6); dims[5].how_to_advance = advance();
+
+      const exec = `Overall band: Basic. Your inputs show directional fit but rely on generalities and lack quantified stakes or time-bound urgency. To create momentum, the value story needs a specific buyer problem, a near-term trigger, and a credible proof point. With those, teams can align on decisions and sequence initiatives. The sections below explain why each dimension is at its current level and how to advance with concrete moves.`;
+
+      const roleCoach = role.includes('product')
+        ? {
+            headline_edit: 'Ship a single message the whole org can use.',
+            urgency_tightening: 'Tie roadmap items to revenue or retention risk in the next two quarters.',
+            differentiator_rewrite: 'Name one workflow uniquely automated end-to-end and add a metric from a live customer.',
+            final_value_prop: 'We unify product, marketing, and sales on a clear value story that accelerates adoption and revenue.',
+            value_calc_outline: ['Baseline activation','Lift assumption','Payback months'],
+            next_actions: ['Baseline activation metric','Draft a 100‑word case with numbers','Validate with 3 customers']
+          }
+        : {
+            headline_edit: 'Stop losing deals to faster storytellers.',
+            urgency_tightening: 'Anchor to quarter‑end or competitive deadlines with quantified risk.',
+            differentiator_rewrite: 'Replace feature lists with one unique mechanism and a proof point.',
+            final_value_prop: 'We align teams on a quantified value story that increases win rate and velocity.',
+            value_calc_outline: ['Baseline win rate','Assumed delta','Impact range'],
+            next_actions: ['Collect baseline metrics','Draft a one‑pager per ICP','Secure 2 customer quotes']
+          };
+
+      return {
+        profile: payload.profile,
+        executive_summary: exec,
+        total: dims.reduce((a,b)=>a+b.score,0),
+        band: 'Basic',
+        dimensions: dims,
+        coaching: { role_adaptive: true, **roleCoach },
+        risks: ['Unsubstantiated ROI'],
+        path:'A'
       };
-      return { profile: payload.profile, total, band:'Basic', dimensions:dims, coaching:{role_adaptive:true, ...CoachingByRole}, risks:['Unsubstantiated ROI'], path:'A' };
     }
   </script>
 </body>
