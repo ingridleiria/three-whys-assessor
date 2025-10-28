@@ -1,25 +1,23 @@
 // File: api/evaluate.js
 export const config = { runtime: 'edge' };
 
-function safeParse(text, fallback) {
-  try { return JSON.parse(text); } catch { return fallback; }
-}
+function safeParse(text, fallback) { try { return JSON.parse(text); } catch { return fallback; } }
 
 export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Use POST' }), { status: 405 });
-  }
+  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Use POST' }), { status: 405 });
   const { profile = {}, answers = {} } = await req.json();
 
   const SYSTEM = `You are a strict B2B GTM evaluator. Score six dimensions (Why change, Why now, Why your company, Emotion→Logic, Buyer-as-hero, Clarity).
-Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output ONLY valid JSON per schema. Tailor coaching to role. Do not fabricate external facts.`;
+Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output ONLY JSON matching the schema. Write an executive summary >=75 words explaining the overall band.
+For EACH dimension write two fields: rationale >=45 words (why this level) and how_to_advance >=45 words (how to reach next level), tailored to the user's answers. Provide role-tailored coaching, a suggested final value proposition, and 3–6 next actions. Do not fabricate external facts.`;
 
   const schemaHint = {
     profile: { name: '', role: '', email: '', organization: '' },
+    executive_summary: '',
     total: 0,
     band: 'None',
     dimensions: [],
-    coaching: { role_adaptive: true },
+    coaching: { role_adaptive: true, headline_edit:'', urgency_tightening:'', differentiator_rewrite:'', value_calc_outline:[], final_value_prop:'', next_actions:[] },
     risks: [],
     path: 'A'
   };
@@ -56,11 +54,11 @@ Use 0=None, 2=Emerging, 3=Basic, 4=Advanced, 5=Leading. Output ONLY valid JSON p
   if (data.output_text) text = data.output_text;
   else if (Array.isArray(data.output)) {
     text = data.output.map(o => {
-      if (Array.isArray(o.content) && o.content[0] && o.content[0].type === 'output_text') return o.content[0].text;
-      if (o.content && o.content[0] && o.content[0].text) return o.content[0].text;
+      if (Array.isArray(o.content) && o.content[0]?.type === 'output_text') return o.content[0].text;
+      if (o.content && o.content[0]?.text) return o.content[0].text;
       return '';
     }).join('\n');
-  } else if (data.choices && data.choices[0]?.message?.content) {
+  } else if (data.choices?.[0]?.message?.content) {
     text = data.choices[0].message.content;
   }
 
