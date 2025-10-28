@@ -385,7 +385,7 @@
       const app = document.getElementById('app');
       app.innerHTML = `
         <div class="logo-container"><img src="img/wide.jpg" alt="SalesSparx logo"></div>
-        <h1>Answer the Assessment Questions</h1>
+        <h1>Assessment Questions</h1>
         <p class="intro">Provide thoughtful responses to each of the questions below. Your answers should articulate the situation, urgency and differentiation in your value proposition. We’ve included examples to guide you. Detailed answers will yield more accurate and personalised feedback. You may optionally attach supporting documents (PDF, Word, PowerPoint or Excel) for each question.</p>
         <form id="step2Form">
           <label for="q1">Q1 — Who is the buyer and what is their top pain today? (Why change?)</label>
@@ -701,7 +701,19 @@
           'no idea',
           'not sure',
           'don’t have',
-          'don\'t have'
+          'don\'t have',
+          'dont have',
+          'missing',
+          'not available',
+          'unavailable',
+          'not provided',
+          'not existing',
+          'not exist',
+          'no data',
+          'no information',
+          'not applicable',
+          'not present',
+          'not disposable'
         ];
         const isUnknown = wordCount === 0 || unknownPatterns.some((p) => ansLower.includes(p));
         if (isUnknown) {
@@ -789,11 +801,13 @@
       // Build a simple final value proposition suggestion using the provided answers
       const vpSentence = answers.q6 ? answers.q6.trim() : '';
       coaching.finalValue = vpSentence || 'Craft your value proposition here by clearly stating who you serve, the problem you solve, and the impact you deliver.';
-      // Next actions suggestions
+      // Next actions suggestions (provide five bullet points)
       coaching.nextActions = [
-        'Interview at least three customers to validate emotional drivers and pain points.',
-        'Document a one‑liner value proposition for each key buyer persona.',
-        'Gather data and proof points to quantify your outcomes and support your claims.'
+        'Interview at least five customers to validate emotional drivers and pain points.',
+        'Compile detailed buyer personas and map their top pains and emotional triggers.',
+        'Develop a simple value calculator using your data to quantify benefits for prospects.',
+        'Draft and test multiple emotional headlines balanced by logical benefits across channels.',
+        'Collect new case studies or testimonials that illustrate quantifiable outcomes from your solution.'
       ];
       const result = {
         profile,
@@ -875,11 +889,11 @@
             </tbody>
           </table>
         </div>
-        <!-- Next actions and final value proposition -->
+        <!-- Final value proposition and next actions -->
         <div class="final-section">
+          ${data.coaching.finalValue ? `<h3>Suggested Value Proposition</h3><p>${data.coaching.finalValue}</p>` : ''}
+          ${data.coaching.salesSparxText ? `<p>${data.coaching.salesSparxText}</p>` : ''}
           <h3>Next Actions</h3>
-          <p>${data.coaching.salesSparxText || ''}</p>
-          ${data.coaching.finalValue ? `<p>${data.coaching.finalValue}</p>` : ''}
           <ul>${nextActionsHtml}</ul>
         </div>
         <!-- Action buttons -->
