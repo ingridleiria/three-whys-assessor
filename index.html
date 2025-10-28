@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,9 +9,9 @@
     :root{
       --brand-black:#000000;
       --brand-white:#ffffff;
-      --brand-teal:#4CA09A;   /* Primary Teal (Brand Guide p.23) */
-      --brand-darkteal:#147E76; /* Secondary Dark Teal (Brand Guide p.24) */
-      --brand-red:#CA2027;    /* Primary Accent Red (Brand Guide p.23) */
+      --brand-teal:#4CA09A;
+      --brand-darkteal:#147E76;
+      --brand-red:#CA2027;
       --gray-50:#f8f9fb;
       --gray-100:#f2f4f7;
       --gray-200:#e4e7ec;
@@ -18,70 +19,35 @@
       --gray-500:#667085;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--brand-black);
-      background: var(--gray-50);
-      line-height:1.5;
-    }
-    header{
-      background: var(--brand-black);
-      color: var(--brand-white);
-      padding: 24px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .logo{
-      font-weight:800;
-      letter-spacing:.5px;
-      font-size:20px;
-    }
-    .tag{
-      font-size:12px;
-      opacity:.9;
-    }
+    body{margin:0;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial; color: var(--brand-black);background: var(--gray-50);line-height:1.5;}
+    header{background: var(--brand-black);color: var(--brand-white);padding: 24px;display:flex;align-items:center;justify-content:space-between;}
+    .logo{font-weight:800;letter-spacing:.5px;font-size:20px}
+    .tag{font-size:12px;opacity:.9}
     main{max-width:980px;margin:24px auto;padding:0 16px 80px;}
-    .card{
-      background:var(--brand-white);
-      border:1px solid var(--gray-200);
-      border-radius:14px;
-      box-shadow:0 4px 16px rgba(0,0,0,.04);
-      padding:24px;
-    }
+    .card{background:var(--brand-white);border:1px solid var(--gray-200);border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.04);padding:24px;}
     h1{font-size:28px;margin:0 0 8px}
     h2{font-size:20px;margin:24px 0 8px}
     p.lead{color:var(--gray-500);margin:0 0 16px}
     label{display:block;margin:12px 0 6px;font-weight:600}
-    input, textarea, select{
-      width:100%;
-      padding:12px 14px;
-      border:1px solid var(--gray-300);
-      border-radius:10px;
-      background:var(--brand-white);
-      font-size:14px;
-      outline:none;
-    }
+    input, textarea{width:100%;padding:12px 14px;border:1px solid var(--gray-300);border-radius:10px;background:var(--brand-white);font-size:14px;outline:none}
     textarea{min-height:120px;resize:vertical}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .actions{margin-top:16px;display:flex;gap:12px}
-    button{
-      appearance:none;border:0;border-radius:999px;padding:12px 18px;
-      font-weight:700;cursor:pointer
-    }
+    button{appearance:none;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}
     .btn-primary{background:var(--brand-teal);color:var(--brand-white)}
     .btn-secondary{background:var(--gray-100);color:var(--brand-black);border:1px solid var(--gray-300)}
     .pill{display:inline-flex;align-items:center;gap:8px;background:var(--brand-darkteal);color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
     .muted{color:var(--gray-500)}
     .hidden{display:none}
-    .meter{height:10px;border-radius:999px;background:var(--gray-200);overflow:hidden}
+    .meter{height:10px;border-radius:999px;background:var(--gray-200);overflow:hidden;margin:8px 0 4px}
     .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--brand-teal),var(--brand-darkteal));width:0}
-    pre{white-space:pre-wrap;background:#0b0b0b;color:#d7e6e4;padding:16px;border-radius:10px;overflow:auto}
-    .footer{margin-top:18px;font-size:12px;color:var(--gray-500)}
-    .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-    .legend .k{padding:6px 10px;border-radius:8px;border:1px solid var(--gray-300);background:var(--gray-100);font-size:12px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .col-4{grid-column:span 4}
+    .col-8{grid-column:span 8}
     .badge{padding:4px 10px;border-radius:999px;border:1px solid var(--gray-300);background:var(--gray-100);font-size:12px}
+    .callout{border-left:4px solid var(--brand-teal);background:#f2fcfb;padding:12px;border-radius:10px}
+    ul{margin:8px 0 0 18px}
+    .err{color:#b00020;font-weight:600}
   </style>
 </head>
 <body>
@@ -92,30 +58,15 @@
   <main>
     <section id="page-identity" class="card">
       <h1>Start</h1>
-      <p class="lead">This assessment benchmarks your value proposition across the Three Whys and returns coaching tailored to your role.</p>
-      <div class="legend">
-        <div class="k">0 None</div><div class="k">2 Emerging</div><div class="k">3 Basic</div><div class="k">4 Advanced</div><div class="k">5 Leading</div>
-      </div>
+      <p class="lead">This assessment benchmarks your value proposition across the Three Whys and returns role-tailored coaching.</p>
       <form id="id-form">
         <div class="row">
-          <div>
-            <label>Name</label>
-            <input name="name" required>
-          </div>
-          <div>
-            <label>Role</label>
-            <input name="role" required placeholder="CEO, CRO, Head of Product, etc.">
-          </div>
+          <div><label>Name<input name="name" required></label></div>
+          <div><label>Role<input name="role" required placeholder="CEO, CRO, Head of Product, etc."></label></div>
         </div>
         <div class="row">
-          <div>
-            <label>Email</label>
-            <input name="email" type="email" required>
-          </div>
-          <div>
-            <label>Organization</label>
-            <input name="organization" required>
-          </div>
+          <div><label>Email<input name="email" type="email" required></label></div>
+          <div><label>Organization<input name="organization" required></label></div>
         </div>
         <div class="actions">
           <button class="btn-primary" type="submit">Continue</button>
@@ -132,19 +83,14 @@
       <form id="tw-form">
         <label>Q1 — Who is the buyer and what is their top pain today? <span class="badge">Why change?</span></label>
         <textarea name="q1" maxlength="900" required></textarea>
-
         <label>Q2 — What trigger makes this a priority in the next 3–6 months? <span class="badge">Why now?</span></label>
         <textarea name="q2" maxlength="900" required></textarea>
-
         <label>Q3 — Why are you the right partner? Add 2–3 differentiators and one proof point. <span class="badge">Why your company?</span></label>
         <textarea name="q3" maxlength="900" required></textarea>
-
         <label>Q4 — Write a 1–2 line emotional hook headline.</label>
         <textarea name="q4" maxlength="900" required></textarea>
-
-        <label>Q5 — Quantify expected outcomes (time saved, revenue lift, risk avoided) and assumptions.</label>
+        <label>Q5 — Quantify expected outcomes and assumptions.</label>
         <textarea name="q5" maxlength="900" required></textarea>
-
         <label>Q6 — Draft a one-sentence value proposition.</label>
         <textarea name="q6" maxlength="900" required></textarea>
 
@@ -162,12 +108,26 @@
       </div>
       <div class="meter" aria-label="score meter"><span id="meter"></span></div>
       <p class="muted" id="scoreline"></p>
-      <pre id="json"></pre>
-      <div class="actions">
-        <button id="download" class="btn-secondary" type="button">Download JSON</button>
+
+      <div class="grid">
+        <div class="col-4">
+          <h3>Scores by Dimension</h3>
+          <div id="dim-list"></div>
+        </div>
+        <div class="col-8">
+          <h3>Role-tailored Coaching</h3>
+          <div id="coach" class="callout"></div>
+          <h3>Suggested Final Value Proposition</h3>
+          <div id="fvp" class="callout"></div>
+          <h3>Next Actions</h3>
+          <ul id="next"></ul>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:16px">
         <button id="restart" class="btn-primary" type="button">Run Again</button>
       </div>
-      <div class="footer">Powered by OpenAI. Do not fabricate external facts; cite sources in your answers.</div>
+      <p id="err" class="err"></p>
     </section>
   </main>
 
@@ -182,9 +142,11 @@
     const band = document.getElementById('band');
     const meter = document.getElementById('meter');
     const scoreline = document.getElementById('scoreline');
-    const jsonOut = document.getElementById('json');
-    const downloadBtn = document.getElementById('download');
-    const restartBtn = document.getElementById('restart');
+    const dimList = document.getElementById('dim-list');
+    const coach = document.getElementById('coach');
+    const fvp = document.getElementById('fvp');
+    const next = document.getElementById('next');
+    const err = document.getElementById('err');
     let profile = {};
 
     idForm.addEventListener('submit', (e)=>{
@@ -202,72 +164,86 @@
 
     assessForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
+      err.textContent = '';
       const answers = Object.fromEntries(new FormData(assessForm).entries());
       const payload = {profile, answers};
-      const res = await fetch('/api/evaluate', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      }).catch(()=>null);
+      let res;
+      try{
+        res = await fetch('/api/evaluate', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+      } catch(e){ /* ignore */ }
 
+      let json;
       if(!res || !res.ok){
-        // Fallback demo result so the HTML works without a backend
-        const demo = demoResult(payload);
-        renderResult(demo);
-        return;
+        json = demoResult(payload); // fallback
+        err.textContent = 'Running demo mode. Confirm /api/evaluate is deployed and OPENAI_API_KEY is set.';
+      } else {
+        json = await res.json();
       }
-      const json = await res.json();
       renderResult(json);
     });
 
     function renderResult(json){
       const total = json.total || 0;
-      const max = 30; // 6 dimensions * 5
+      const max = 30;
       meter.style.width = Math.min(100, Math.round((total/max)*100)) + '%';
       band.textContent = json.band || '—';
       scoreline.textContent = `Total ${total} / ${max}`;
-      jsonOut.textContent = JSON.stringify(json, null, 2);
+
+      dimList.innerHTML = (json.dimensions || []).map(d => `
+        <div class="callout" style="margin:8px 0">
+          <div><strong>${d.name}</strong></div>
+          <div class="muted">Score: ${d.score} • Level: ${d.level || ''}</div>
+          <div>${d.rationale || ''}</div>
+        </div>
+      `).join('');
+
+      const c = json.coaching || {};
+      coach.innerHTML = `
+        <div><strong>Headline:</strong> ${c.headline_edit || ''}</div>
+        <div><strong>Urgency:</strong> ${c.urgency_tightening || ''}</div>
+        <div><strong>Differentiators:</strong> ${c.differentiator_rewrite || ''}</div>
+        <div><strong>Value Calc Outline:</strong> ${(c.value_calc_outline||[]).join(' • ')}</div>
+      `;
+      fvp.textContent = c.final_value_prop || '';
+      next.innerHTML = (c.next_actions || []).map(x=>`<li>${x}</li>`).join('');
+
       assessPage.classList.add('hidden');
       resultsPage.classList.remove('hidden');
 
-      downloadBtn.onclick = () => {
-        const blob = new Blob([JSON.stringify(json,null,2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'three-whys-result.json';
-        a.click();
-      };
-      restartBtn.onclick = ()=>{
+      document.getElementById('restart').onclick = ()=>{
         resultsPage.classList.add('hidden');
         assessForm.reset();
         assessPage.classList.remove('hidden');
-      }
+      };
     }
 
     function demoResult(payload){
-      // Minimal deterministic mock for offline testing
       const dims = [
         {name:'Why change'}, {name:'Why now'}, {name:'Why your company'},
         {name:'Emotion→Logic'},{name:'Buyer-as-hero'},{name:'Clarity'}
-      ].map((d,i)=>({name:d.name, score:3, level:'Basic', rationale:'Demo score. Connect emotion to quantified outcomes.', evidence: [] }));
+      ].map(d=>({name:d.name, score:3, level:'Basic', rationale:'Demo score. Connect emotion to quantified outcomes.', evidence: [] }));
       const total = dims.reduce((a,b)=>a+b.score,0);
-      return {
-        profile: payload.profile,
-        total,
-        band: 'Basic',
-        dimensions: dims,
-        coaching: {
-          role_adaptive: true,
-          headline_edit: 'Get home for dinner by cutting admin time 30 percent.',
-          urgency_tightening: 'Tie outcome to a quarter-end trigger or regulatory deadline.',
-          differentiator_rewrite: 'Name a unique capability and add a customer proof point with numbers.',
-          value_calc_outline: ['Baseline metric','Assumption','Impact range','Payback'],
-          final_value_prop: 'We reduce [buyer pain] now with [unique approach], delivering [quantified outcome].',
-          next_actions: ['Collect baseline metric','Draft 1 short case study','Validate assumptions with 3 customers']
-        },
-        risks: ['Unsubstantiated ROI'],
-        path:'A'
+      const role = (payload.profile.role||'').toLowerCase();
+      const CoachingByRole = role.includes('product') ? {
+        headline_edit: 'Ship a message the whole org can use.',
+        urgency_tightening: 'Tie roadmap items to revenue risk in the next two quarters.',
+        differentiator_rewrite: 'Name a workflow you uniquely automate end-to-end.',
+        final_value_prop: 'We unify product, marketing, and sales on a single value story that drives adoption and revenue.',
+        value_calc_outline: ['Baseline activation','Lift assumption','Payback months'],
+        next_actions: ['Gather 3 customer quotes','Document one-liner per ICP','Baseline activation metric']
+      } : {
+        headline_edit: 'Stop losing deals to faster storytellers.',
+        urgency_tightening: 'Anchor to quarter-end or competitive deadlines.',
+        differentiator_rewrite: 'Cite one unique proof with numbers.',
+        final_value_prop: 'We align teams on a clear, quantified value story that accelerates pipeline and win rate.',
+        value_calc_outline: ['Baseline win rate','Assumed delta','Impact range'],
+        next_actions: ['Collect baseline metrics','Draft a 100-word case','Validate with 3 customers']
       };
+      return { profile: payload.profile, total, band:'Basic', dimensions:dims, coaching:{role_adaptive:true, ...CoachingByRole}, risks:['Unsubstantiated ROI'], path:'A' };
     }
   </script>
 </body>
