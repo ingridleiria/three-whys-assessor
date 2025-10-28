@@ -1,282 +1,557 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Three Whys Value Proposition Assessor — SalesSparx</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three Whys Value Proposition Assessor</title>
+  <!--
+    This page implements a multi‑step assessment for building a value
+    proposition using the Three Whys framework. It follows the
+    SalesSparx brand guidelines by incorporating the official colour
+    palette (teal, dark teal, red, black and light greys). The script
+    manages transitions between steps, performs client‑side validation,
+    invokes a serverless API to score the responses, and renders a
+    detailed report with tailored coaching based on the role provided.
+  -->
   <style>
-    :root{
-      --brand-black:#000000;
-      --brand-white:#ffffff;
-      --brand-teal:#4CA09A;
-      --brand-darkteal:#147E76;
-      --brand-red:#CA2027;
-      --gray-50:#f8f9fb;
-      --gray-100:#f2f4f7;
-      --gray-200:#e4e7ec;
-      --gray-300:#d0d5dd;
-      --gray-500:#667085;
+    :root {
+      --color-primary: #4ca09a; /* Teal (headline/sections) */
+      --color-secondary: #147e76; /* Dark teal (accents/buttons) */
+      --color-accent: #ca2027; /* Red (warnings/errors) */
+      --color-black: #000000; /* Primary text */
+      --color-gray: #f5f5f5; /* Page background */
+      --color-white: #ffffff; /* Card background */
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial; color: var(--brand-black);background: var(--gray-50);line-height:1.5;}
-    header{background: var(--brand-black);color: var(--brand-white);padding: 24px;display:flex;align-items:center;justify-content:space-between;}
-    .logo{font-weight:800;letter-spacing:.5px;font-size:20px}
-    .tag{font-size:12px;opacity:.9}
-    main{max-width:980px;margin:24px auto;padding:0 16px 80px;}
-    .card{background:var(--brand-white);border:1px solid var(--gray-200);border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.04);padding:24px;}
-    h1{font-size:28px;margin:0 0 8px}
-    h2{font-size:20px;margin:24px 0 8px}
-    p.lead{color:var(--gray-500);margin:0 0 16px}
-    label{display:block;margin:12px 0 6px;font-weight:600}
-    input, textarea{width:100%;padding:12px 14px;border:1px solid var(--gray-300);border-radius:10px;background:var(--brand-white);font-size:14px;outline:none}
-    textarea{min-height:120px;resize:vertical}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .actions{margin-top:16px;display:flex;gap:12px}
-    button{appearance:none;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}
-    .btn-primary{background:var(--brand-teal);color:var(--brand-white)}
-    .btn-secondary{background:var(--gray-100);color:var(--brand-black);border:1px solid var(--gray-300)}
-    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--brand-darkteal);color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
-    .muted{color:var(--gray-500)}
-    .hidden{display:none}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-    .col-4{grid-column:span 4}
-    .col-6{grid-column:span 6}
-    .badge{padding:4px 10px;border-radius:999px;border:1px solid var(--gray-300);background:var(--gray-100);font-size:12px}
-    .callout{border-left:4px solid var(--brand-teal);background:#f2fcfb;padding:12px;border-radius:10px}
-    .tile{border:1px solid var(--gray-200);border-radius:12px;padding:14px;background:#fff}
-    .avg{font-size:40px;font-weight:800;color:var(--brand-darkteal)}
-    .err{color:#b00020;font-weight:600}
-    ul{margin:8px 0 0 18px}
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Avenir", "Helvetica", "Arial", sans-serif;
+      background-color: var(--color-gray);
+      color: var(--color-black);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--color-white);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-top: 8px solid var(--color-secondary);
+    }
+
+    h1 {
+      margin-top: 0;
+      color: var(--color-secondary);
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p.intro {
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 0.3rem;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--color-secondary);
+      box-shadow: 0 0 0 3px rgba(20, 126, 118, 0.15);
+    }
+
+    .actions {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    button {
+      background-color: var(--color-secondary);
+      color: var(--color-white);
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 0.3rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--color-primary);
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .example {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 0.2rem;
+    }
+
+    .error {
+      color: var(--color-accent);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Results styling */
+    .score-summary {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .score-summary .score-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--color-secondary);
+    }
+
+    .score-summary .score-band {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .dimension-card {
+      background-color: #fafafa;
+      border: 1px solid #e5e5e5;
+      padding: 1rem 1.2rem;
+      border-radius: 0.4rem;
+      margin-top: 1rem;
+    }
+
+    .dimension-card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+    }
+
+    .dimension-card p {
+      margin: 0.3rem 0;
+    }
+
+    .coaching-section,
+    .final-section {
+      margin-top: 2rem;
+    }
+
+    .coaching-section h3,
+    .final-section h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .coaching-section p,
+    .final-section p {
+      margin: 0.4rem 0;
+    }
+
+    .coaching-section ul,
+    .final-section ul {
+      margin-top: 0.4rem;
+      padding-left: 1.2rem;
+    }
+
+    .coaching-section li,
+    .final-section li {
+      margin: 0.2rem 0;
+      list-style-type: disc;
+    }
+
+    .loading {
+      font-style: italic;
+      color: #555;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">sales<span style="color:#ffb100">SPARX</span></div>
-    <div class="tag">Three Whys Value Proposition Assessor</div>
-  </header>
-  <main>
-    <section id="page-identity" class="card">
-      <h1>Start</h1>
-      <p class="lead">This assessment benchmarks your value proposition across the Three Whys and returns role-tailored coaching.</p>
-      <form id="id-form">
-        <div class="row">
-          <div><label>Name<input name="name" required></label></div>
-          <div><label>Role<input name="role" required placeholder="CEO, CRO, Head of Product, etc."></label></div>
-        </div>
-        <div class="row">
-          <div><label>Email<input name="email" type="email" required></label></div>
-          <div><label>Organization<input name="organization" required></label></div>
-        </div>
-        <div class="actions">
-          <button class="btn-primary" type="submit">Continue</button>
-          <span class="muted">We do not store responses by default.</span>
-        </div>
-      </form>
-    </section>
-
-    <section id="page-assessment" class="card hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Assessment</h2>
-        <span id="prof-pill" class="pill"></span>
-      </div>
-      <form id="tw-form">
-        <label>Q1 — Who is the buyer and what is their top pain today? <span class="badge">Why change?</span></label>
-        <textarea name="q1" maxlength="900" required></textarea>
-        <label>Q2 — What trigger makes this a priority in the next 3–6 months? <span class="badge">Why now?</span></label>
-        <textarea name="q2" maxlength="900" required></textarea>
-        <label>Q3 — Why are you the right partner? Add 2–3 differentiators and one proof point. <span class="badge">Why your company?</span></label>
-        <textarea name="q3" maxlength="900" required></textarea>
-        <label>Q4 — Write a 1–2 line emotional hook headline.</label>
-        <textarea name="q4" maxlength="900" required></textarea>
-        <label>Q5 — Quantify expected outcomes and assumptions.</label>
-        <textarea name="q5" maxlength="900" required></textarea>
-        <label>Q6 — Draft a one-sentence value proposition.</label>
-        <textarea name="q6" maxlength="900" required></textarea>
-
-        <div class="actions">
-          <button class="btn-primary" type="submit">Assess</button>
-          <button class="btn-secondary" type="button" id="back">Back</button>
-        </div>
-      </form>
-    </section>
-
-    <section id="page-results" class="card hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Value Proposition Results</h2>
-        <div><span class="muted">Average Score</span><div class="avg" id="avgScore">—</div></div>
-      </div>
-      <p id="exec" class="callout"></p>
-
-      <h3>Detailed Assessment</h3>
-      <div id="table"></div>
-
-      <h3>Recommendations</h3>
-      <div class="grid">
-        <div class="col-6">
-          <div class="tile">
-            <h4>Role-tailored Coaching</h4>
-            <div id="coach"></div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="tile">
-            <h4>Suggested Final Value Proposition + Next Actions</h4>
-            <div id="fvp"></div>
-            <ul id="next"></ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="actions" style="margin-top:16px">
-        <button id="restart" class="btn-primary" type="button">Run Again</button>
-      </div>
-      <p id="err" class="err"></p>
-    </section>
-  </main>
-
+  <div class="wrapper">
+    <div class="card" id="app">
+      <!-- Dynamic content will be injected here by script -->
+    </div>
+  </div>
   <script>
-    const idPage = document.getElementById('page-identity');
-    const assessPage = document.getElementById('page-assessment');
-    const resultsPage = document.getElementById('page-results');
-    const idForm = document.getElementById('id-form');
-    const assessForm = document.getElementById('tw-form');
-    const backBtn = document.getElementById('back');
-    const profPill = document.getElementById('prof-pill');
-    const avgScore = document.getElementById('avgScore');
-    const exec = document.getElementById('exec');
-    const table = document.getElementById('table');
-    const coach = document.getElementById('coach');
-    const fvp = document.getElementById('fvp');
-    const next = document.getElementById('next');
-    const err = document.getElementById('err');
-    let profile = {};
-// Global error logger
-window.addEventListener('error', (e)=>{ 
-  const el = document.getElementById('err'); 
-  if (el) el.textContent = 'Client error: ' + (e.message || 'unknown'); 
-});
+    // Global state for the multi‑step form
+    const state = {
+      profile: {},
+      answers: {},
+      results: null,
+    };
 
-    idForm.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      if (!idForm.checkValidity()) { idForm.reportValidity(); return; }
-      e.preventDefault();
-      profile = Object.fromEntries(new FormData(idForm).entries());
-      profPill.textContent = `${profile.name} • ${profile.role} @ ${profile.organization}`;
-      idPage.classList.add('hidden');
-      assessPage.classList.remove('hidden');
-    });
-
-    backBtn.addEventListener('click', ()=>{
-      assessPage.classList.add('hidden');
-      idPage.classList.remove('hidden');
-    });
-
-    assessForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      err.textContent = '';
-      const answers = Object.fromEntries(new FormData(assessForm).entries());
-      const payload = {profile, answers};
-      let res;
-      try{
-        res = await fetch('/api/evaluate', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-      } catch(e){ /* ignore */ }
-
-      let json;
-      if(!res || !res.ok){
-        json = demoResult(payload); // fallback
-        err.textContent = 'Running demo mode. Confirm /api/evaluate is deployed and OPENAI_API_KEY is set.';
-      } else {
-        json = await res.json();
-      }
-      renderResult(json);
-    });
-
-    function renderResult(json){
-      const dims = json.dimensions || [];
-      const avg = dims.length ? (dims.reduce((a,b)=>a+(b.score||0),0) / dims.length) : 0;
-      avgScore.textContent = avg.toFixed(1);
-      exec.textContent = json.executive_summary || '';
-
-      table.innerHTML = dims.map(d => `
-        <div class="grid" style="align-items:start;margin:8px 0">
-          <div class="col-4"><strong>${d.name}</strong><div class="muted">Score ${d.score} • ${d.level||''}</div></div>
-          <div class="col-4"><div class="tile"><strong>Why this level</strong><br>${d.rationale || ''}</div></div>
-          <div class="col-4"><div class="tile"><strong>How to reach next level</strong><br>${d.how_to_advance || ''}</div></div>
-        </div>`).join('');
-
-      const c = json.coaching || {};
-      coach.innerHTML = `
-        <div><strong>Headline:</strong> ${c.headline_edit || ''}</div>
-        <div><strong>Urgency:</strong> ${c.urgency_tightening || ''}</div>
-        <div><strong>Differentiators:</strong> ${c.differentiator_rewrite || ''}</div>
-        <div><strong>Value Calc Outline:</strong> ${(c.value_calc_outline||[]).join(' • ')}</div>
+    /**
+     * Render Step 1: Collect user details and provide introduction
+     */
+    function showStep1() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <h1>Three Whys Value Proposition Assessment</h1>
+        <p class="intro">This short assessment helps you craft and evaluate a powerful value proposition using the Three Whys framework: <strong>Why change?</strong> <strong>Why now?</strong> and <strong>Why your company?</strong> You’ll provide some basic information about yourself and then answer six questions. We’ll analyse your responses and generate a detailed report with tailored coaching and next steps.</p>
+        <form id="step1Form">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required placeholder="e.g. Ingrid" />
+          <label for="role">Role</label>
+          <input type="text" id="role" name="role" required placeholder="e.g. Head of Product" />
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="e.g. me@example.com" />
+          <label for="organization">Organization</label>
+          <input type="text" id="organization" name="organization" required placeholder="e.g. SalesSparx" />
+          <div id="step1Error" class="error" style="display:none"></div>
+          <div class="actions">
+            <button type="submit">Continue</button>
+          </div>
+        </form>
       `;
-      fvp.textContent = c.final_value_prop || '';
-      next.innerHTML = (c.next_actions || []).map(x=>`<li>${x}</li>`).join('');
-
-      assessPage.classList.add('hidden');
-      resultsPage.classList.remove('hidden');
-
-      document.getElementById('restart').onclick = ()=>{
-        resultsPage.classList.add('hidden');
-        assessForm.reset();
-        assessPage.classList.remove('hidden');
-      };
+      // Attach submit handler
+      const form = document.getElementById('step1Form');
+      form.addEventListener('submit', handleStep1Submit);
     }
 
-    function demoResult(payload){
-      const A = payload.answers || {};
-      const role = (payload.profile.role||'').toLowerCase();
-      const dims = [
-        {name:'Why change'}, {name:'Why now'}, {name:'Why your company'},
-        {name:'Emotion→Logic'},{name:'Buyer-as-hero'},{name:'Clarity'}
-      ].map(d=>({name:d.name, score:3, level:'Basic'}));
-      const explain = (ans) => 
-        `This reads as Basic because the response "${(ans||'').slice(0,140)}" lacks precise buyer language, quantified stakes, and clear ownership. The message signals intent but not evidence, so it does not create prioritization pressure across teams.`;
-      const advance = () => 
-        `Elevate to Advanced by adding one quantified KPI, a dated trigger inside the next two quarters, and one hard proof point. Assign an accountable owner and convert generic claims into a concrete mechanism with a before/after metric.`;
-      dims[0].rationale = explain(A.q1); dims[0].how_to_advance = advance();
-      dims[1].rationale = explain(A.q2); dims[1].how_to_advance = advance();
-      dims[2].rationale = explain(A.q3); dims[2].how_to_advance = advance();
-      dims[3].rationale = explain(A.q4); dims[3].how_to_advance = advance();
-      dims[4].rationale = explain(A.q6); dims[4].how_to_advance = advance();
-      dims[5].rationale = explain(A.q6); dims[5].how_to_advance = advance();
+    /**
+     * Handle the submission of step 1. Validate fields and proceed to step 2.
+     * @param {Event} e
+     */
+    function handleStep1Submit(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('step1Error');
+      errorEl.style.display = 'none';
+      const name = document.getElementById('name').value.trim();
+      const role = document.getElementById('role').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const organization = document.getElementById('organization').value.trim();
+      if (!name || !role || !email || !organization) {
+        errorEl.textContent = 'Please fill in all fields.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      // Save profile information
+      state.profile = { name, role, email, organization };
+      showStep2();
+    }
 
-      const exec = `Overall band: Basic. Your inputs show directional fit but rely on generalities and lack quantified stakes or time-bound urgency. To create momentum, the value story needs a specific buyer problem, a near-term trigger, and a credible proof point. With those, teams can align on decisions and sequence initiatives. The sections below explain why each dimension is at its current level and how to advance with concrete moves.`;
+    /**
+     * Render Step 2: Display questions and collect answers
+     */
+    function showStep2() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <h1>Answer the Assessment Questions</h1>
+        <p class="intro">Provide thoughtful responses to each of the questions below. Your answers should articulate the situation, urgency and differentiation in your value proposition. We’ve included examples to guide you. Detailed answers will yield more accurate and personalised feedback.</p>
+        <form id="step2Form">
+          <label for="q1">Q1 — Who is the buyer and what is their top pain today? (Why change?)</label>
+          <textarea id="q1" name="q1" rows="3" required placeholder="Identify your primary buyer and describe the most pressing challenge they face."></textarea>
+          <div class="example">Example: CEOs and CROs of mid‑sized B2B SaaS companies struggle with inconsistent go‑to‑market execution, leading to long sales cycles and low win rates.</div>
 
-      const roleCoach = role.includes('product')
-        ? {
-            headline_edit: 'Ship a single message the whole org can use.',
-            urgency_tightening: 'Tie roadmap items to revenue or retention risk in the next two quarters.',
-            differentiator_rewrite: 'Name one workflow uniquely automated end-to-end and add a metric from a live customer.',
-            final_value_prop: 'We unify product, marketing, and sales on a clear value story that accelerates adoption and revenue.',
-            value_calc_outline: ['Baseline activation','Lift assumption','Payback months'],
-            next_actions: ['Baseline activation metric','Draft a 100‑word case with numbers','Validate with 3 customers']
-          }
-        : {
-            headline_edit: 'Stop losing deals to faster storytellers.',
-            urgency_tightening: 'Anchor to quarter‑end or competitive deadlines with quantified risk.',
-            differentiator_rewrite: 'Replace feature lists with one unique mechanism and a proof point.',
-            final_value_prop: 'We align teams on a quantified value story that increases win rate and velocity.',
-            value_calc_outline: ['Baseline win rate','Assumed delta','Impact range'],
-            next_actions: ['Collect baseline metrics','Draft a one‑pager per ICP','Secure 2 customer quotes']
-          };
+          <label for="q2">Q2 — What trigger makes this a priority in the next 3–6 months? (Why now?)</label>
+          <textarea id="q2" name="q2" rows="3" required placeholder="Describe the catalyst that makes this problem urgent."></textarea>
+          <div class="example">Example: The rapid rise of AI‑driven enablement tools is forcing teams to modernise their processes. Competitors are already integrating AI into prospecting and customer insights.</div>
 
-      return {
-        profile: payload.profile,
-        executive_summary: exec,
-        total: dims.reduce((a,b)=>a+b.score,0),
-        band: 'Basic',
+          <label for="q3">Q3 — Why are you the right partner? Add 2–3 differentiators and one proof point. (Why your company?)</label>
+          <textarea id="q3" name="q3" rows="3" required placeholder="Explain how your company uniquely addresses the problem."></textarea>
+          <div class="example">Example: We’ve helped over 100 SaaS firms shorten onboarding time by 40% with our combination of diagnostic assessment and actionable playbooks.</div>
+
+          <label for="q4">Q4 — Write a 1–2 line emotional hook headline.</label>
+          <textarea id="q4" name="q4" rows="2" required placeholder="Craft a headline that evokes emotion and captures attention."></textarea>
+          <div class="example">Example: “Stop losing deals to faster storytellers.”</div>
+
+          <label for="q5">Q5 — Quantify expected outcomes (time saved, revenue lift, risk avoided) and assumptions.</label>
+          <textarea id="q5" name="q5" rows="3" required placeholder="Provide numbers and assumptions behind your expected outcomes."></textarea>
+          <div class="example">Example: Clients typically see a 25–35% lift in qualified pipeline and a 20% improvement in close rates within six months, assuming teams of 10+ sellers and ACV above $25K.</div>
+
+          <label for="q6">Q6 — Draft a one‑sentence value proposition.</label>
+          <textarea id="q6" name="q6" rows="2" required placeholder="Summarise your value proposition in one concise sentence."></textarea>
+          <div class="example">Example: SalesSparx helps growth‑stage B2B companies unify their go‑to‑market message and drive predictable revenue by aligning teams on the “why” behind their value.</div>
+
+          <div id="step2Error" class="error" style="display:none"></div>
+          <div class="actions">
+            <button type="button" id="backBtn">Back</button>
+            <button type="submit" id="submitBtn">Submit</button>
+          </div>
+        </form>
+      `;
+      // Back button handler
+      document.getElementById('backBtn').addEventListener('click', () => {
+        showStep1();
+      });
+      // Submit handler
+      document.getElementById('step2Form').addEventListener('submit', handleStep2Submit);
+    }
+
+    /**
+     * Handle submission of step 2. Validate answers and invoke the API.
+     * @param {Event} e
+     */
+    function handleStep2Submit(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('step2Error');
+      errorEl.style.display = 'none';
+      // Gather answers
+      const answers = {};
+      let allFilled = true;
+      ['q1','q2','q3','q4','q5','q6'].forEach((key) => {
+        const val = document.getElementById(key).value.trim();
+        if (!val) {
+          allFilled = false;
+        }
+        answers[key] = val;
+      });
+      if (!allFilled) {
+        errorEl.textContent = 'Please complete all questions before submitting.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      state.answers = answers;
+      evaluateAnswers();
+    }
+
+    /**
+     * Call the evaluation API and show results. Falls back to local scoring
+     * if the API fails (e.g. missing API key in development).
+     */
+    async function evaluateAnswers() {
+      const app = document.getElementById('app');
+      // Show loading state
+      app.innerHTML = `
+        <h1>Evaluating Your Responses…</h1>
+        <p class="loading">Please wait while we analyse your answers and generate your report.</p>
+      `;
+      try {
+        const response = await fetch('api/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile: state.profile, answers: state.answers }),
+        });
+        if (!response.ok) throw new Error('Server returned an error');
+        const data = await response.json();
+        state.results = data;
+        showResults();
+      } catch (err) {
+        // Fallback: perform client‑side evaluation similar to the server
+        console.warn('API call failed; falling back to local scoring.', err);
+        const fallback = localEvaluate(state.profile, state.answers);
+        state.results = fallback;
+        showResults();
+      }
+    }
+
+    /**
+     * Compute a local evaluation for demonstration purposes. This mirrors
+     * server logic using simple heuristics on answer length to assign
+     * maturity scores and generates generic messaging for summaries and
+     * coaching. In production the serverless function will call OpenAI
+     * for a richer, more tailored assessment.
+     * @param {Object} profile
+     * @param {Object} answers
+     */
+    function localEvaluate(profile, answers) {
+      const categories = [
+        { name: 'Why change', key: 'q1' },
+        { name: 'Why now', key: 'q2' },
+        { name: 'Why your company', key: 'q3' },
+        { name: 'Emotion–Logic', key: 'q4' },
+        { name: 'Buyer‑as‑hero', key: 'q5' },
+        { name: 'Clarity', key: 'q6' },
+      ];
+      const dims = [];
+      let totalScore = 0;
+      categories.forEach((cat) => {
+        const ans = (answers[cat.key] || '').trim();
+        const wordCount = ans ? ans.split(/\s+/).length : 0;
+        let score = 0;
+        let level = '';
+        let why = '';
+        let how = '';
+        if (wordCount === 0) {
+          score = 0;
+          level = 'None';
+          why = 'You left this question unanswered, which provides no insight into your buyer’s context, the urgency of their pain or how your company might address it. Without this information there is nothing to evaluate, so this dimension scores a zero.';
+          how = 'Start by writing at least one detailed paragraph describing the buyer, their situation and how your product or service could change it. Provide facts, examples and emotions to help us understand the context. Use past experiences or research to enrich your description and set a foundation for evaluation.';
+        } else if (wordCount < 15) {
+          score = 2;
+          level = 'Emerging';
+          why = 'Your answer is very brief and lacks context, leaving key questions unanswered. At an emerging level you might mention the buyer or the problem but you don’t provide the background, emotion or data to build confidence. This makes it hard to see why a change would matter or why you are credible.';
+          how = 'Add specific details about who the buyer is and the scale of their pain. Include an example or metric to quantify urgency. Describe how your product or service uniquely helps them and why now is the right time. A fuller paragraph will elevate you to the next level.';
+        } else if (wordCount < 40) {
+          score = 3;
+          level = 'Basic';
+          why = 'You have captured the core idea by articulating the buyer, pain, urgency or differentiation, but the response remains surface level. At a basic level there is some structure, yet it lacks depth, evidence and emotional pull. Buyers may understand the problem but still wonder why they should trust your solution.';
+          how = 'Strengthen your answer by elaborating on the problem with anecdotes or statistics, connecting the emotional drivers to logical data. Provide proof points like case study results or testimonials and highlight what truly distinguishes your company. This added depth will move you towards the advanced band.';
+        } else if (wordCount < 80) {
+          score = 4;
+          level = 'Advanced';
+          why = 'Your answer is well developed, balancing emotional storytelling with logical proof. It clearly identifies the buyer’s pain, establishes urgency and explains why your company is uniquely suited to help. However there may still be opportunities to weave in unique insights or more tangible evidence to demonstrate market leadership.';
+          how = 'To reach a leading level, enrich your narrative with proprietary data, customer success metrics and thought leadership. Illustrate how your solution delivers measurable outcomes and share unique perspectives or innovations that competitors lack. Continually refine your messaging based on feedback to maintain authenticity and differentiation.';
+        } else {
+          score = 5;
+          level = 'Leading';
+          why = 'This answer is comprehensive and demonstrates mastery of the framework. It seamlessly integrates emotional hooks, quantifiable results and clear differentiation, making a compelling case for change now and for your company. The narrative flows logically and builds trust through concrete evidence and unique insights.';
+          how = 'The next step is to keep sharpening your story through continuous market research and customer conversations. Look for ways to personalise your message further and ensure it resonates across different stakeholder groups. Maintain your leadership by adapting to market shifts and sharing fresh success stories to inspire confidence.';
+        }
+        totalScore += score;
+        dims.push({ name: cat.name, score, level, why, how });
+      });
+      const avgScore = (totalScore / (categories.length)).toFixed(1);
+      let band = '';
+      const avgNumeric = parseFloat(avgScore);
+      if (avgNumeric < 1) band = 'None';
+      else if (avgNumeric < 2.5) band = 'Emerging';
+      else if (avgNumeric < 3.5) band = 'Basic';
+      else if (avgNumeric < 4.5) band = 'Advanced';
+      else band = 'Leading';
+      const summaryMap = {
+        None: 'Your assessment indicates there is currently no structured value proposition. Without a clear understanding of your buyer, urgency or differentiation, it will be difficult to craft a message that resonates. Start by articulating each of the Three Whys in detail and gather proof points to build credibility. Identify who your ideal customer is, what pain they experience, why addressing that pain now matters, and why your approach uniquely solves it. Write down your narrative and refine it through customer conversations. Doing so will lay the foundation for a clear, compelling value proposition.',
+        Emerging: 'Your value proposition is still forming. You’ve identified key elements but the answers lack sufficient context and proof. At this stage it’s important to research your buyer’s motivations and gather data to support your claims. Spend time interviewing customers, mapping their pain points, and quantifying the costs of inaction. Use those insights to enrich your messaging. Document differentiators and proof points like case studies or benchmarks. This groundwork will help you move from an emerging story to a convincing narrative.',
+        Basic: 'You have a foundational value proposition. You identify the buyer, their pain and why now, but there’s room to add more specificity and differentiation. Strengthen your message by connecting emotional hooks to quantitative evidence and tailoring your story to the buyer’s needs. Include specific examples of how your solution has addressed similar challenges, data that underscores urgency, and unique capabilities that competitors lack. The more you tie emotion to logic and show measurable outcomes, the more persuasive your message will become.',
+        Advanced: 'Your value proposition is strong and well crafted. You balance emotional hooks with logical proof and clearly articulate why change is needed now and why you are the right partner. To elevate further, incorporate more unique proof points and refine your differentiation based on customer feedback. Continue refining your narrative by integrating fresh customer stories and industry trends, and make sure your messaging remains consistent across all channels and stakeholders. Frequent iteration ensures you maintain relevance and stay ahead of competitors.',
+        Leading: 'Congratulations! Your value proposition is industry leading. You demonstrate mastery of the Three Whys, weave emotion and logic seamlessly, and provide compelling evidence. Continue to innovate and adapt your message as markets evolve to maintain leadership. Regularly benchmark against the best in class and solicit feedback from customers and partners to keep your narrative sharp. Share your insights internally to empower teams and externally to position yourself as a thought leader. This proactive approach will keep your value proposition ahead of the curve.',
+      };
+      const executiveSummary = summaryMap[band];
+      // Role tailored coaching
+      const role = (profile.role || '').toLowerCase();
+      let coaching = {
+        headline: 'Elevate your value proposition',
+        urgency: 'Clarify the stakes and link your roadmap to near‑term outcomes.',
+        differentiators: 'Highlight unique capabilities and proof points that set you apart.',
+        valueOutline: 'Define baseline metrics, lift assumptions and payback timeframe.',
+        coachingText: '',
+        finalValue: '',
+        nextActions: []
+      };
+      if (role.includes('product')) {
+        coaching.coachingText = 'As a product leader you should translate product capabilities into business outcomes. Collaborate with marketing and sales to ensure your feature roadmap supports the customer’s story. Use customer interviews to discover emotional drivers and align messaging with market needs.';
+      } else if (role.includes('marketing')) {
+        coaching.coachingText = 'As a marketing leader focus on articulating a clear narrative that resonates with your buyer’s fears and ambitions. Build campaigns around quantified proof and nurture leads through education on the Three Whys. Align closely with sales to ensure consistent messaging across the funnel.';
+      } else if (role.includes('sales')) {
+        coaching.coachingText = 'As a sales leader ensure your team understands the Three Whys and can articulate them in conversations. Coach reps to lead with emotion, back it with logic and tailor differentiation based on buyer persona. Regularly gather feedback from prospects to refine your message.';
+      } else if (role.includes('ceo') || role.includes('chief executive')) {
+        coaching.coachingText = 'As a CEO your role is to champion a unified value proposition across the organisation. Align product, marketing and sales around a shared narrative and ensure resources support timely execution. Emphasise the organisational urgency and link the value story to strategic goals.';
+      } else {
+        coaching.coachingText = 'Align with cross‑functional teams to build a unified value story. Ensure your personal objectives support the broader go‑to‑market strategy and contribute feedback to improve the value proposition.';
+      }
+      // Build a simple final value proposition suggestion using the provided answers
+      const headline = answers.q4 ? answers.q4.trim() : '';
+      const vpSentence = answers.q6 ? answers.q6.trim() : '';
+      coaching.finalValue = vpSentence || 'Craft your value proposition here by clearly stating who you serve, the problem you solve, and the impact you deliver.';
+      coaching.nextActions = [
+        'Interview at least three customers to validate emotional drivers and pain points.',
+        'Document a one‑liner value proposition for each key buyer persona.',
+        'Gather data and proof points to quantify your outcomes and support your claims.'
+      ];
+      const result = {
+        profile,
+        averageScore: avgScore,
+        band,
+        executiveSummary,
         dimensions: dims,
-        coaching: { role_adaptive: true, **roleCoach },
-        risks: ['Unsubstantiated ROI'],
-        path:'A'
+        coaching
       };
+      return result;
     }
+
+    /**
+     * Render the results page using state.results
+     */
+    function showResults() {
+      const data = state.results;
+      const app = document.getElementById('app');
+      // Build HTML for dimension cards
+      let dimensionsHtml = '';
+      data.dimensions.forEach((dim) => {
+        dimensionsHtml += `
+          <div class="dimension-card">
+            <h3>${dim.name} – Score: ${dim.score} / 5 (<span>${dim.level}</span>)</h3>
+            <p><strong>Why this level:</strong> ${dim.why}</p>
+            <p><strong>How to reach the next level:</strong> ${dim.how}</p>
+          </div>
+        `;
+      });
+      // Build list items for next actions
+      let nextActionsHtml = '';
+      if (data.coaching.nextActions && data.coaching.nextActions.length) {
+        data.coaching.nextActions.forEach((act) => {
+          nextActionsHtml += `<li>${act}</li>`;
+        });
+      }
+      app.innerHTML = `
+        <h1>Value Proposition Results</h1>
+        <div class="score-summary">
+          <div class="score-number">${data.averageScore}</div>
+          <div class="score-band">${data.band}</div>
+        </div>
+        <p>${data.executiveSummary}</p>
+        <h2>Scores by Dimension</h2>
+        ${dimensionsHtml}
+        <div class="coaching-section">
+          <h3>Role‑Tailored Coaching</h3>
+          <p><strong>Headline:</strong> ${data.coaching.headline}</p>
+          <p><strong>Urgency:</strong> ${data.coaching.urgency}</p>
+          <p><strong>Differentiators:</strong> ${data.coaching.differentiators}</p>
+          <p><strong>Value Calculation Outline:</strong> ${data.coaching.valueOutline}</p>
+          <p>${data.coaching.coachingText}</p>
+        </div>
+        <div class="final-section">
+          <h3>Suggested Final Value Proposition & Next Actions</h3>
+          <p><strong>Value Proposition:</strong> ${data.coaching.finalValue}</p>
+          <ul>${nextActionsHtml}</ul>
+        </div>
+      `;
+    }
+
+    // Initialise page on load
+    document.addEventListener('DOMContentLoaded', showStep1);
   </script>
 </body>
 </html>
