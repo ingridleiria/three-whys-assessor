@@ -869,7 +869,7 @@
               <th class="text-center">Score</th>
               <th>Level</th>
               <th>Why this level</th>
-              <th>How to reach next level</th>
+              <th>Recommendations</th>
             </tr>
           </thead>
           <tbody>
@@ -889,9 +889,8 @@
             </tbody>
           </table>
         </div>
-        <!-- Final value proposition and next actions -->
+        <!-- Next actions section (suggested value proposition removed) -->
         <div class="final-section">
-          ${data.coaching.finalValue ? `<h3>Suggested Value Proposition</h3><p>${data.coaching.finalValue}</p>` : ''}
           ${data.coaching.salesSparxText ? `<p>${data.coaching.salesSparxText}</p>` : ''}
           <h3>Next Actions</h3>
           <ul>${nextActionsHtml}</ul>
