@@ -91,7 +91,7 @@ function fallbackEvaluate(profile, answers) {
       score = 1;
       level = 'None';
       why = 'You left this question unanswered or indicated that you don’t know, which provides no insight into your buyer’s context, the urgency of their pain or how your company might address it. Without this information there is nothing to evaluate, so this dimension scores the lowest.';
-      how = 'Start by writing at least one detailed paragraph describing the buyer, their situation and how your product or service could change it. Provide facts, examples and emotions to help us understand the context. Use past experiences or research to enrich your description and set a foundation for evaluation. If you truly lack this information, prioritise gathering it before progressing.';
+      how = 'Start by thinking through three elements: (a) who is your buyer and what is their top pain, (b) why addressing this problem matters now, and (c) why your company is uniquely equipped to help. Write at least one detailed paragraph covering these points and include facts, examples or emotions. If you lack this information, prioritise customer interviews and market research before moving forward.';
     } else if (wordCount < 15) {
       // Assign score 2 for emerging responses.
       score = 2;
@@ -123,12 +123,25 @@ function fallbackEvaluate(profile, answers) {
   const avgScore = (totalScore / categories.length).toFixed(1);
   const avgNumeric = parseFloat(avgScore);
   let band = '';
-  // Determine the band based on the average of a 1–5 scale.
-  if (avgNumeric < 1.5) band = 'None';
-  else if (avgNumeric < 2.5) band = 'Emerging';
-  else if (avgNumeric < 3.5) band = 'Basic';
-  else if (avgNumeric < 4.5) band = 'Advanced';
-  else band = 'Leading';
+  /*
+   * Determine the band using updated thresholds:
+   *  1.0–1.9 → None
+   *  2.0–2.9 → Emerging
+   *  3.0–3.9 → Basic
+   *  4.0–4.9 → Advanced
+   *  5.0     → Leading
+   */
+  if (avgNumeric < 2.0) {
+    band = 'None';
+  } else if (avgNumeric < 3.0) {
+    band = 'Emerging';
+  } else if (avgNumeric < 4.0) {
+    band = 'Basic';
+  } else if (avgNumeric < 5.0) {
+    band = 'Advanced';
+  } else {
+    band = 'Leading';
+  }
   const summaryMap = {
     None: 'Your assessment indicates there is currently no structured value proposition. Without a clear understanding of your buyer, urgency or differentiation, it will be difficult to craft a message that resonates. Start by articulating each of the Three Whys in detail and gather proof points to build credibility. Identify who your ideal customer is, what pain they experience, why addressing that pain now matters, and why your approach uniquely solves it. Write down your narrative and refine it through customer conversations. Doing so will lay the foundation for a clear, compelling value proposition.',
     Emerging: 'Your value proposition is still forming. You’ve identified key elements but the answers lack sufficient context and proof. At this stage it’s important to research your buyer’s motivations and gather data to support your claims. Spend time interviewing customers, mapping their pain points, and quantifying the costs of inaction. Use those insights to enrich your messaging. Document differentiators and proof points like case studies or benchmarks. This groundwork will help you move from an emerging story to a convincing narrative.',
