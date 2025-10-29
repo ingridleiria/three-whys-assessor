@@ -698,6 +698,9 @@
       categories.forEach((cat) => {
         const ans = (answers[cat.key] || '').trim();
         const wordCount = ans ? ans.split(/\s+/).length : 0;
+        // Check if an attachment exists for this question to boost effective length
+        const hasAttachment = state.attachments && state.attachments[cat.key] && state.attachments[cat.key].content;
+        const effectiveWordCount = wordCount + (hasAttachment ? 30 : 0);
         let score = 0;
         let level = '';
         // Normalise answer to lowercase for unknown detection
@@ -730,22 +733,22 @@
           'not present',
           'not disposable'
         ];
-        // Normalise answer and compute unknown detection: unknown if empty or contains a pattern in a very short response
+        // Normalise answer and compute unknown detection: unknown if empty or contains any unknown pattern
         const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
         const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
-        const isVeryShort = wordCount <= 4;
-        const isUnknown = normalised.length === 0 || (containsUnknown && isVeryShort);
+        // A response is considered unknown if empty or contains an unknown phrase anywhere
+        const isUnknown = normalised.length === 0 || containsUnknown;
         // Extremely short answers (two words or fewer) or unknown patterns are treated as None
         if (isUnknown || wordCount <= 2) {
           score = 1;
           level = 'None';
-        } else if (wordCount < 15) {
+        } else if (effectiveWordCount < 15) {
           score = 2;
           level = 'Emerging';
-        } else if (wordCount < 40) {
+        } else if (effectiveWordCount < 40) {
           score = 3;
           level = 'Basic';
-        } else if (wordCount < 80) {
+        } else if (effectiveWordCount < 80) {
           score = 4;
           level = 'Advanced';
         } else {
