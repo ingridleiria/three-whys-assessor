@@ -735,8 +735,13 @@
         ];
         // Normalise answer and compute unknown detection: unknown if empty or contains any unknown pattern
         const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
-        const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
-        // A response is considered unknown if empty or contains an unknown phrase anywhere
+        // Use word boundary matching to avoid false positives (e.g. 'na' in 'unaligned').
+        const containsUnknown = unknownPatterns.some((p) => {
+          const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+          return regex.test(normalised);
+        });
+        // A response is considered unknown if empty or contains an unknown phrase
         const isUnknown = normalised.length === 0 || containsUnknown;
         // Extremely short answers (two words or fewer) or unknown patterns are treated as None
         if (isUnknown || wordCount <= 2) {
