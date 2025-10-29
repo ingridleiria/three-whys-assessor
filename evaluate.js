@@ -228,8 +228,12 @@ function fallbackEvaluate(profile, answers, attachments = {}) {
     ];
     // Trim and normalise the answer to lowercase, removing punctuation for comparison
     const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
-    // Determine if the answer contains an unknown phrase anywhere
-    const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
+    // Determine if the answer contains an unknown phrase using word boundaries to avoid false positives
+    const containsUnknown = unknownPatterns.some((p) => {
+      const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+      return regex.test(normalised);
+    });
     // A response is considered unknown if empty or contains an unknown phrase
     const isUnknown = normalised.length === 0 || containsUnknown;
     // Extremely short answers (two words or fewer) or unknown patterns are treated as None
