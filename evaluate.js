@@ -64,7 +64,7 @@ function callOpenAI(apiKey, payload) {
  * @param {Object} profile
  * @param {Object} answers
  */
-function fallbackEvaluate(profile, answers) {
+function fallbackEvaluate(profile, answers, attachments = {}) {
   const categories = [
     { name: 'Why change', key: 'q1' },
     { name: 'Why now', key: 'q2' },
@@ -214,6 +214,9 @@ function fallbackEvaluate(profile, answers) {
   categories.forEach((cat) => {
     const ans = (answers[cat.key] || '').trim();
     const wordCount = ans ? ans.split(/\s+/).length : 0;
+    // If an attachment is provided for this question, assume it adds significant context (~30 words)
+    const hasAttachment = attachments && attachments[cat.key] && attachments[cat.key].content;
+    const effectiveWordCount = wordCount + (hasAttachment ? 30 : 0);
     let score = 0;
     let level = '';
     const ansLower = ans.toLowerCase();
@@ -225,22 +228,21 @@ function fallbackEvaluate(profile, answers) {
     ];
     // Trim and normalise the answer to lowercase, removing punctuation for comparison
     const normalised = ansLower.replace(/[^a-z0-9\s]/g, '').trim();
-    // Determine if the answer contains an unknown phrase
+    // Determine if the answer contains an unknown phrase anywhere
     const containsUnknown = unknownPatterns.some((p) => normalised.includes(p));
-    const isVeryShort = wordCount <= 4;
-    // A response is considered unknown if empty or if it contains an unknown phrase and is very short
-    const isUnknown = normalised.length === 0 || (containsUnknown && isVeryShort);
+    // A response is considered unknown if empty or contains an unknown phrase
+    const isUnknown = normalised.length === 0 || containsUnknown;
     // Extremely short answers (two words or fewer) or unknown patterns are treated as None
     if (isUnknown || wordCount <= 2) {
       score = 1;
       level = 'None';
-    } else if (wordCount < 15) {
+    } else if (effectiveWordCount < 15) {
       score = 2;
       level = 'Emerging';
-    } else if (wordCount < 40) {
+    } else if (effectiveWordCount < 40) {
       score = 3;
       level = 'Basic';
-    } else if (wordCount < 80) {
+    } else if (effectiveWordCount < 80) {
       score = 4;
       level = 'Advanced';
     } else {
@@ -407,7 +409,8 @@ module.exports = async (req, res) => {
       }
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) {
-        const result = fallbackEvaluate(profile, answers);
+        // If no API key is available, perform local heuristic evaluation and include attachments
+        const result = fallbackEvaluate(profile, answers, attachments);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(result));
@@ -469,7 +472,9 @@ module.exports = async (req, res) => {
         // truncated content sample to help the model understand the context.
         if (attachments && attachments[key] && attachments[key].content) {
           const fileName = attachments[key].name;
-          const contentSample = attachments[key].content.slice(0, 200);
+          // Provide a larger sample of the attachment content to the model. 500 characters should
+          // give the model more context while keeping the prompt size manageable.
+          const contentSample = attachments[key].content.slice(0, 500);
           promptContent += `Attached file (${fileName}) sample: ${contentSample}\n`;
         }
       });
@@ -490,7 +495,7 @@ module.exports = async (req, res) => {
         res.end(JSON.stringify(parsed));
       } catch (err) {
         // If API call fails, fall back to heuristic evaluation
-        const result = fallbackEvaluate(profile, answers);
+        const result = fallbackEvaluate(profile, answers, attachments);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(result));
